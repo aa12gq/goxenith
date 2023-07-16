@@ -31,6 +31,7 @@ func (User) Fields() []ent.Field {
 		field.Time("birthday").Comment("出生日期").Optional(),
 		field.String("password").Comment("密码").Annotations(entsql.Annotation{Size: 60}),
 		field.String("personal_profile").Comment("个人简介").Annotations(entsql.Annotation{Size: 1024}),
+		field.String("email").Comment("邮箱").Annotations(entsql.Annotation{Size: 30}),
 	}
 }
 
