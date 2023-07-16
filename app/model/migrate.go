@@ -1,9 +1,9 @@
-package app
+package model
 
 import (
 	"context"
 	entschema "entgo.io/ent/dialect/sql/schema"
-	ci "goxenith/app/ent"
+	ci "goxenith/app/model/ent"
 	"goxenith/pkg/database"
 	"goxenith/pkg/model"
 )
