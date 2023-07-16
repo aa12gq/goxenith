@@ -22,6 +22,7 @@ func main() {
 	config.InitConfig(env)
 
 	router := gin.New()
+	bootstrap.SetupDB()
 	bootstrap.SetupRoute(router)
 
 	err := router.Run(":" + config.Get("app.port"))
