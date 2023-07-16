@@ -6,7 +6,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"goxenith/app/models/ent"
 )
+
+var DB *ent.Client
 
 type DAO struct {
 	DbDriver dialect.Driver

@@ -4,13 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"goxenith/app/model"
-	"goxenith/app/model/ent"
+	"goxenith/app/models"
+	"goxenith/app/models/ent"
 	"goxenith/pkg/config"
 	"goxenith/pkg/database"
 )
-
-var DB *ent.Client
 
 // SetupDB 初始化数据库和 ORM
 func SetupDB() {
@@ -31,8 +29,8 @@ func SetupDB() {
 		if err != nil {
 			panic(errors.New("New Dao error "))
 		}
-		DB = ent.NewClient(ent.Driver(drv.DbDriver))
-		if err := model.Migrate(context.Background(), drv, &model.MigrateOptions{
+		database.DB = ent.NewClient(ent.Driver(drv.DbDriver))
+		if err := models.Migrate(context.Background(), drv, &models.MigrateOptions{
 			Debug:            true,
 			DropColumn:       false,
 			DropIndex:        false,

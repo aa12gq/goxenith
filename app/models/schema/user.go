@@ -4,11 +4,18 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/field"
+	"goxenith/pkg/model"
 )
 
 // User holds the schema definition for the User entity.
 type User struct {
 	ent.Schema
+}
+
+func (User) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		model.EntityStatMixin{},
+	}
 }
 
 // Fields of the User.
