@@ -1,8 +1,10 @@
 package bootstrap
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"goxenith/app"
 	"goxenith/app/ent"
 	"goxenith/pkg/config"
 	"goxenith/pkg/database"
@@ -30,6 +32,14 @@ func SetupDB() {
 			panic(errors.New("New Dao error "))
 		}
 		DB = ent.NewClient(ent.Driver(drv.DbDriver))
+		if err := app.Migrate(context.Background(), drv, &app.MigrateOptions{
+			Debug:            true,
+			DropColumn:       false,
+			DropIndex:        false,
+			CreateForeignKey: false,
+		}); err != nil {
+			panic(err)
+		}
 	default:
 		panic(errors.New("database connection not supported"))
 	}
