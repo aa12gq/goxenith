@@ -20,6 +20,7 @@ func main() {
 	flag.StringVar(&env, "env", "", "加载 .env 文件，如 --env=testing 加载的是 .env.testing 文件")
 	flag.Parse()
 	config.InitConfig(env)
+	bootstrap.SetupLogger()
 
 	router := gin.New()
 	bootstrap.SetupDB()
