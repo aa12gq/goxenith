@@ -7,7 +7,7 @@ import (
 	"goxenith/app/requests"
 	"goxenith/pkg/database"
 	"goxenith/pkg/model"
-	"net/http"
+	"goxenith/pkg/response"
 )
 
 type SignupController struct {
@@ -27,7 +27,7 @@ func (sc *SignupController) IsPhoneExist(c *gin.Context) {
 		panic(err)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	response.JSON(c, gin.H{
 		"exist": exist,
 	})
 }
@@ -45,7 +45,7 @@ func (sc *SignupController) IsEmailExist(c *gin.Context) {
 		panic(err)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	response.JSON(c, gin.H{
 		"exist": exist,
 	})
 }
