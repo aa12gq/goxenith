@@ -8,6 +8,7 @@ import (
 	"goxenith/pkg/database"
 	"goxenith/pkg/model"
 	"goxenith/pkg/response"
+	pb "goxenith/proto/app/v1"
 )
 
 type SignupController struct {
@@ -16,8 +17,7 @@ type SignupController struct {
 
 // IsPhoneExist 检测手机号是否被注册
 func (sc *SignupController) IsPhoneExist(c *gin.Context) {
-
-	request := requests.SignupPhoneExistRequest{}
+	request := pb.SignupPhoneExistRequest{}
 	if ok := requests.Validate(c, &request, requests.SignupPhoneExist); !ok {
 		return
 	}
@@ -27,15 +27,13 @@ func (sc *SignupController) IsPhoneExist(c *gin.Context) {
 		panic(err)
 	}
 
-	response.JSON(c, gin.H{
-		"exist": exist,
-	})
+	response.JSON(c, &pb.IsExist{Exist: exist})
 }
 
 // IsEmailExist 检测邮箱是否已注册
 func (sc *SignupController) IsEmailExist(c *gin.Context) {
 
-	request := requests.SignupEmailExistRequest{}
+	request := pb.SignupEmailExistRequest{}
 	if ok := requests.Validate(c, &request, requests.SignupEmailExist); !ok {
 		return
 	}
@@ -45,7 +43,5 @@ func (sc *SignupController) IsEmailExist(c *gin.Context) {
 		panic(err)
 	}
 
-	response.JSON(c, gin.H{
-		"exist": exist,
-	})
+	response.JSON(c, pb.IsExist{Exist: exist})
 }

@@ -1,0 +1,15 @@
+syntax = "proto3";
+package logger;
+
+option go_package = "vcs.intra.veigit.com/dimpocp/dimpocp-server/proto/third_party/logger;logger";
+enum LogLevel {
+    LevelDebug = 0;
+    LevelInfo = 1;
+    LevelWarn = 2;
+    LevelError = 3;
+    LevelFatal = 4;
+
+}
+message Logger {
+  LogLevel level = 1;
+}

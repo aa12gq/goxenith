@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package com.auth.v1;
+
+option go_package = "goxenith/proto/auth/v1;v1";
+
+message SignupPhoneExistRequest {
+  // @gotags: valid:"phone"
+  string phone = 1;
+}
+
+message SignupEmailExistRequest {
+  // @gotags: valid:"email"
+  string email = 1;
+}
+
+message IsExist {
+  bool exist = 1;
+}
+
+message ShowCaptchaReply{
+  // 图片验证码id
+  string captcha_id = 1;
+  // 图片验证码
+  string captcha_image = 2;
+}

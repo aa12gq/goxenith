@@ -6,6 +6,7 @@ import (
 	"goxenith/pkg/captcha"
 	"goxenith/pkg/logger"
 	"goxenith/pkg/response"
+	pb "goxenith/proto/app/v1"
 )
 
 type VerifyCodeController struct {
@@ -16,8 +17,5 @@ type VerifyCodeController struct {
 func (vc *VerifyCodeController) ShowCaptcha(c *gin.Context) {
 	id, b64s, err := captcha.NewCaptcha().GenerateCaptcha()
 	logger.LogIf(err)
-	response.JSON(c, gin.H{
-		"captcha_id":    id,
-		"captcha_image": b64s,
-	})
+	response.JSON(c, pb.ShowCaptchaReply{CaptchaId: id, CaptchaImage: b64s})
 }
