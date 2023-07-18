@@ -3,13 +3,16 @@ package auth
 import (
 	"github.com/gin-gonic/gin"
 	v1 "goxenith/app/http/controllers/api/v1"
+	"goxenith/app/models/ent"
 	entUser "goxenith/app/models/ent/user"
 	"goxenith/app/requests"
+	"goxenith/pkg/auth"
 	"goxenith/pkg/database"
 	"goxenith/pkg/logger"
 	"goxenith/pkg/model"
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
+	"strconv"
 )
 
 type SignupController struct {
@@ -23,7 +26,9 @@ func (sc *SignupController) IsPhoneExist(c *gin.Context) {
 		return
 	}
 
-	exist, err := database.DB.User.Query().Where(entUser.PhoneEQ(request.Phone), entUser.DeleteEQ(model.DeletedNo)).Exist(c)
+	exist, err := database.DB.User.Query().
+		Where(entUser.PhoneEQ(request.Phone),
+			entUser.DeleteEQ(model.DeletedNo)).Exist(c)
 	if err != nil {
 		panic(err)
 	}
@@ -39,7 +44,9 @@ func (sc *SignupController) IsEmailExist(c *gin.Context) {
 		return
 	}
 
-	exist, err := database.DB.User.Query().Where(entUser.EmailEQ(request.Email), entUser.DeleteEQ(model.DeletedNo)).Exist(c)
+	exist, err := database.DB.User.Query().
+		Where(entUser.EmailEQ(request.Email),
+			entUser.DeleteEQ(model.DeletedNo)).Exist(c)
 	if err != nil {
 		panic(err)
 	}
@@ -62,11 +69,21 @@ func (sc *SignupController) SignupUsingPhone(c *gin.Context) {
 		return
 	}
 
-	if !sc.createUser(c, &request) {
+	_user, res := sc.createUser(c, &request)
+	if !res {
 		return
 	}
 
-	response.Success(c)
+	token := auth.NewJWT().IssueToken(strconv.FormatUint(_user.ID, 10), _user.UserName)
+
+	response.JSON(c, &pb.SignupUserUsingPhoneReply{
+		Data: &pb.SignupUserUsingPhoneReply_Data{
+			Id:   _user.ID,
+			Name: _user.UserName,
+		},
+		Token: token,
+	})
+
 }
 
 func (sc *SignupController) phoneExists(c *gin.Context, phone string) bool {
@@ -95,13 +112,13 @@ func (sc *SignupController) nameExists(c *gin.Context, name string) bool {
 	return nameIsExist
 }
 
-func (sc *SignupController) createUser(c *gin.Context, request *pb.SignupUserUsingPhoneRequest) bool {
+func (sc *SignupController) createUser(c *gin.Context, request *pb.SignupUserUsingPhoneRequest) (*ent.User, bool) {
 	_user, err := database.DB.User.Create().
 		SetUserName(request.Name).SetPhone(request.Phone).SetPassword(request.Password).Save(c)
 	if err != nil || _user.ID <= 0 {
 		logger.LogWarnIf("创建用户失败", err)
 		response.Abort500(c, "创建用户失败，请稍后尝试~")
-		return false
+		return nil, false
 	}
-	return true
+	return _user, true
 }

@@ -81,7 +81,7 @@ func SignupUsingPhone(data interface{}, c *gin.Context) map[string][]string {
 
 	rules := govalidator.MapData{
 		"phone":            []string{"required", "digits:11"},
-		"name":             []string{"required", "alpha_num", "between:3,20"},
+		"name":             []string{"required", "between:3,20"},
 		"password":         []string{"required", "min:6"},
 		"password_confirm": []string{"required"},
 		"verify_code":      []string{"required", "digits:6"},
@@ -94,7 +94,6 @@ func SignupUsingPhone(data interface{}, c *gin.Context) map[string][]string {
 		},
 		"name": []string{
 			"required:用户名为必填项",
-			"alpha_num:用户名格式错误，只允许数字和英文",
 			"between:用户名长度需在 3~20 之间",
 		},
 		"password": []string{

@@ -23,6 +23,11 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			// 图片验证码，需要加限流
 			authGroup.POST("/verify-codes/captcha", vcc.ShowCaptcha)
 			authGroup.POST("/verify-codes/phone", vcc.SendUsingPhone)
+			lgc := new(auth.LoginController)
+			// 使用手机号，短信验证码进行登录
+			authGroup.POST("/login/using-phone", lgc.LoginByPhone)
+			// 支持手机号，Email 和 用户名
+			authGroup.POST("/login/using-password", lgc.LoginByPassword)
 		}
 	}
 }

@@ -49,5 +49,36 @@ message SignupUserUsingPhoneRequest {
 }
 
 message SignupUserUsingPhoneReply {
-  bool success = 1;
+  message Data {
+    uint64 id = 1;
+    string name = 2;
+  }
+  Data data = 1;
+  string token = 2;
 }
+
+// 用户登录并签发JWT
+message LoginByPhoneRequest {
+  // @gotags: valid:"phone"
+  string phone = 1;
+  // @gotags: valid:"verify_code"
+  string verify_code = 2;
+}
+
+message LoginByPhoneReply {
+  uint64 uid = 1;
+  string token = 2;
+}
+
+message LoginByPasswordRequest {
+  // @gotags: valid:"account"
+  string account = 1;
+  // @gotags: valid:"password"
+  string password = 2;
+}
+
+message LoginByPasswordReply {
+  uint64 uid = 1;
+  string token = 2;
+}
+
