@@ -58,6 +58,13 @@ func Abort403(c *gin.Context, msg ...string) {
 	})
 }
 
+// Abort400 响应 400，记录已存在
+func Abort400(c *gin.Context, msg ...string) {
+	c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+		"message": defaultMessage("已存在", msg...),
+	})
+}
+
 // Abort500 响应 500，未传参 msg 时使用默认消息
 func Abort500(c *gin.Context, msg ...string) {
 	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{

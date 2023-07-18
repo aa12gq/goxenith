@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "goxenith/app/models/ent/runtime"
 	"goxenith/bootstrap"
 	btsConfig "goxenith/config"
 	"goxenith/pkg/config"

@@ -33,3 +33,21 @@ message VerifyCodePhoneRequest {
   // @gotags: valid:"phone"
   string phone = 3;
 }
+
+// 用户注册
+message SignupUserUsingPhoneRequest {
+  // @gotags: valid:"phone"
+  string phone = 1;
+  // @gotags: valid:"verify_code"
+  string verify_code = 2;
+  // @gotags: valid:"name"
+  string name = 3;
+  // @gotags: valid:"password"
+  string password = 4;
+  // @gotags: valid:"password_confirm"
+  string password_confirm = 5;
+}
+
+message SignupUserUsingPhoneReply {
+  bool success = 1;
+}
