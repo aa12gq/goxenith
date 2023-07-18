@@ -18,10 +18,10 @@ endif
 ent:
 	cd app/models/ && go generate ./...
 
-.PHONY: api
+.PHONY: proto
 
-# generate api proto
-api:
+# generate proto
+proto:
 	protoc --proto_path=./proto \
 			--proto_path=./proto/third_party \
  	       --go_out=paths=source_relative:./proto \
@@ -37,7 +37,7 @@ build-direct:
 
 .PHONY: build
 # build
-build: ent api
+build: ent proto
 	mkdir -p tmp/ && go build -mod=mod -ldflags "-X main" -o ./tmp/ ./...
 .PHONY: generate
 
@@ -45,7 +45,7 @@ build: ent api
 .PHONY: all
 # generate all
 all:
-	make api;
+	make proto;
 	make ent;
 
 # show help
