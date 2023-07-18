@@ -16,6 +16,7 @@ goxenith
 _cgo_defun.c
 _cgo_gotypes.go
 _cgo_export.*
+*.pb**go
 
 # 编译文件 #
 ###################
