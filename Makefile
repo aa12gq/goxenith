@@ -1,4 +1,8 @@
+GOHOSTOS:=$(shell go env GOHOSTOS)
 GOPATH:=$(shell go env GOPATH)
+VERSION=$(shell git describe --tags --always)
+APPS=$(shell ls app)
+PROJ_ROOT=$(shell pwd)
 ifeq ($(GOHOSTOS), windows)
 	#the `find.exe` is different from `find` in bash/shell.
 	#to see https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/find.
@@ -25,3 +29,40 @@ api:
  	       --go-grpc_out=paths=source_relative:./proto \
 	       $(API_PROTO_FILES)
 	       find ./proto -name "*.pb.go" -exec protoc-go-inject-tag -input={} \;
+
+.PHONY: build-direct
+# build app for Linux
+build-direct:
+	GOOS=linux GOARCH=amd64 go build -o tmp/goxenith .
+
+.PHONY: build
+# build
+build: ent api
+	mkdir -p tmp/ && go build -mod=mod -ldflags "-X main" -o ./tmp/ ./...
+.PHONY: generate
+
+
+.PHONY: all
+# generate all
+all:
+	make api;
+	make ent;
+
+# show help
+help:
+	@echo ''
+	@echo 'Usage:'
+	@echo ' make [target]'
+	@echo ''
+	@echo 'Targets:'
+	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
+	helpMessage = match(lastLine, /^# (.*)/); \
+		if (helpMessage) { \
+			helpCommand = substr($$1, 0, index($$1, ":")-1); \
+			helpMessage = substr(lastLine, RSTART + 2, RLENGTH); \
+			printf "\033[36m%-22s\033[0m %s\n", helpCommand,helpMessage; \
+		} \
+	} \
+	{ lastLine = $$0 }' $(MAKEFILE_LIST)
+
+.DEFAULT_GOAL := help
