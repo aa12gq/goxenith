@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"goxenith/pkg/app"
 	"goxenith/pkg/config"
 	"goxenith/pkg/logger"
@@ -35,7 +36,7 @@ type JWT struct {
 
 // JWTCustomClaims 自定义载荷
 type JWTCustomClaims struct {
-	UserID       string `json:"user_id"`
+	UserID       uint64 `json:"user_id"`
 	UserName     string `json:"user_name"`
 	ExpireAtTime int64  `json:"expire_time"`
 
@@ -71,6 +72,8 @@ func (jwt *JWT) ParserToken(c *gin.Context) (*JWTCustomClaims, error) {
 
 	// 2. 解析出错
 	if err != nil {
+		fmt.Println("成功了")
+
 		validationErr, ok := err.(*jwtpkg.ValidationError)
 		if ok {
 			if validationErr.Errors == jwtpkg.ValidationErrorMalformed {
@@ -126,7 +129,7 @@ func (jwt *JWT) RefreshToken(c *gin.Context) (string, error) {
 }
 
 // IssueToken 生成  Token，在登录成功时调用
-func (jwt *JWT) IssueToken(userID string, userName string) string {
+func (jwt *JWT) IssueToken(userID uint64, userName string) string {
 
 	// 1. 构造用户 claims 信息(负荷)
 	expireAtTime := jwt.expireAtTime()

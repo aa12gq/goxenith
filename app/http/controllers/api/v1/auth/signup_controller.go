@@ -12,7 +12,6 @@ import (
 	"goxenith/pkg/model"
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
-	"strconv"
 )
 
 type SignupController struct {
@@ -74,7 +73,7 @@ func (sc *SignupController) SignupUsingPhone(c *gin.Context) {
 		return
 	}
 
-	token := auth.NewJWT().IssueToken(strconv.FormatUint(_user.ID, 10), _user.UserName)
+	token := auth.NewJWT().IssueToken(_user.ID, _user.UserName)
 
 	response.JSON(c, &pb.SignupUserUsingPhoneReply{
 		Data: &pb.SignupUserUsingPhoneReply_Data{

@@ -9,7 +9,6 @@ import (
 	"goxenith/pkg/database"
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
-	"strconv"
 )
 
 type LoginController struct {
@@ -29,7 +28,7 @@ func (lc *LoginController) LoginByPhone(c *gin.Context) {
 	if err != nil {
 		response.Error(c, err, "账号不存在")
 	} else {
-		token := auth.NewJWT().IssueToken(strconv.FormatUint(user.ID, 10), user.UserName)
+		token := auth.NewJWT().IssueToken(user.ID, user.UserName)
 
 		response.JSON(c, pb.LoginByPhoneReply{
 			Uid:   user.ID,
@@ -57,11 +56,25 @@ func (lc *LoginController) LoginByPassword(c *gin.Context) {
 	if err != nil {
 		response.Unauthorized(c, "账号不存在或密码错误")
 	} else {
-		token := auth.NewJWT().IssueToken(strconv.FormatUint(user.ID, 10), user.UserName)
+		token := auth.NewJWT().IssueToken(user.ID, user.UserName)
 
 		response.JSON(c, pb.LoginByPhoneReply{
 			Uid:   user.ID,
 			Token: token,
+		})
+	}
+}
+
+// RefreshToken 刷新 Access Token
+func (lc *LoginController) RefreshToken(c *gin.Context) {
+
+	token, err := auth.NewJWT().RefreshToken(c)
+
+	if err != nil {
+		response.Error(c, err, "令牌刷新失败")
+	} else {
+		response.JSON(c, gin.H{
+			"token": token,
 		})
 	}
 }
