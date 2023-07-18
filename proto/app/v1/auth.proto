@@ -24,3 +24,12 @@ message ShowCaptchaReply{
   // 图片验证码
   string captcha_image = 2;
 }
+
+message VerifyCodePhoneRequest {
+  // @gotags: valid:"captcha_id"
+  string captcha_id = 1;
+  // @gotags: valid:"captcha_answer"
+  string captcha_answer = 2;
+  // @gotags: valid:"phone"
+  string phone = 3;
+}
