@@ -14,6 +14,23 @@ else
 	INTERNAL_PROTO_FILES=$(shell find app -name *.proto)
 	API_PROTO_FILES=$(shell find proto -path proto/third_party -prune -o -name "*.proto" | grep -v "^proto/third_party")
 endif
+
+.PHONY: init
+# init env. install essential tools and plugins, including goxenith, protoc plugins and wire.
+init:
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+.PHONY: mod
+# add missing and remove unused modules
+mod:
+	go mod tidy
+
+.PHONY: fmt
+# go format *.go files
+fmt:
+	gofmt -s -w .
+
 .PHONY: ent
 ent:
 	cd app/models/ && go generate ./...
@@ -41,6 +58,11 @@ build: ent proto
 	mkdir -p tmp/ && go build -mod=mod -ldflags "-X main" -o ./tmp/ ./...
 .PHONY: generate
 
+
+.PHONY: wire
+# generate wire
+wire:
+		cd $(PROJ_ROOT)/app/cmd/ && wire ./...; \
 
 .PHONY: all
 # generate all
