@@ -1,36 +1,42 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"github.com/spf13/cobra"
+	"goxenith/app/cmd"
 	_ "goxenith/app/models/ent/runtime"
 	"goxenith/bootstrap"
-	btsConfig "goxenith/config"
+	btsConig "goxenith/config"
 	"goxenith/pkg/config"
+	"goxenith/pkg/console"
+	"os"
 )
 
 func init() {
-	// 加载 config 目录下的配置信息
-	btsConfig.Initialize()
+	btsConig.Initialize()
 }
 
 func main() {
 
-	var env string
-	flag.StringVar(&env, "env", "", "加载 .env 文件，如 --env=testing 加载的是 .env.testing 文件")
-	flag.Parse()
-	config.InitConfig(env)
-	bootstrap.SetupLogger()
-	gin.SetMode(gin.ReleaseMode)
+	var rootCmd = &cobra.Command{
+		Use:   "Goxenith",
+		Short: "A community project",
+		Long:  `Default will run "serve" command, you can use "-h" flag to see all subcommands`,
+		PersistentPreRun: func(command *cobra.Command, args []string) {
+			config.InitConfig(cmd.Env)
+			bootstrap.SetupLogger()
+			bootstrap.SetupDB()
+			bootstrap.SetupRedis()
+		},
+	}
 
-	router := gin.New()
-	bootstrap.SetupDB()
-	bootstrap.SetupRedis()
-	bootstrap.SetupRoute(router)
+	rootCmd.AddCommand(
+		cmd.CmdServe,
+	)
 
-	err := router.Run(":" + config.Get("app.port"))
-	if err != nil {
-		fmt.Println(err.Error())
+	cmd.RegisterDefaultCmd(rootCmd, cmd.CmdServe)
+	cmd.RegisterGlobalFlags(rootCmd)
+	if err := rootCmd.Execute(); err != nil {
+		console.Exit(fmt.Sprintf("Failed to run app with %v: %s", os.Args, err.Error()))
 	}
 }
