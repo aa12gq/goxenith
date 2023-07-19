@@ -5,8 +5,8 @@ import (
 	v1 "goxenith/app/http/controllers/api/v1"
 	entUser "goxenith/app/models/ent/user"
 	"goxenith/app/requests"
+	"goxenith/dao"
 	"goxenith/pkg/auth"
-	"goxenith/pkg/database"
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
 )
@@ -23,7 +23,7 @@ func (lc *LoginController) LoginByPhone(c *gin.Context) {
 		return
 	}
 
-	user, err := database.DB.User.Query().Where(entUser.PhoneEQ(request.Phone)).First(c)
+	user, err := dao.DB.User.Query().Where(entUser.PhoneEQ(request.Phone)).First(c)
 
 	if err != nil {
 		response.Error(c, err, "账号不存在")
@@ -45,7 +45,7 @@ func (lc *LoginController) LoginByPassword(c *gin.Context) {
 		return
 	}
 
-	user, err := database.DB.User.Query().Where(
+	user, err := dao.DB.User.Query().Where(
 		entUser.Or(
 			entUser.PhoneEQ(request.Account),
 			entUser.EmailEQ(request.Account),

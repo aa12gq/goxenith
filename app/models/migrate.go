@@ -4,7 +4,7 @@ import (
 	"context"
 	entschema "entgo.io/ent/dialect/sql/schema"
 	ci "goxenith/app/models/ent"
-	"goxenith/pkg/database"
+	"goxenith/dao"
 	"goxenith/pkg/model"
 )
 
@@ -15,7 +15,7 @@ type MigrateOptions struct {
 	CreateForeignKey bool
 }
 
-func Migrate(ctx context.Context, daoIn *database.DAO, opt *MigrateOptions) error {
+func Migrate(ctx context.Context, daoIn *dao.DAO, opt *MigrateOptions) error {
 	var schemas []model.EntSchema
 	if opt.Debug {
 		schemas = append(schemas,

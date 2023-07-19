@@ -22,16 +22,16 @@ func (User) Mixin() []ent.Mixin {
 func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.Uint64("id").Comment("用户ID"),
-		field.String("user_name").Comment("用户名").Annotations(entsql.Annotation{Size: 20}),
-		field.String("real_name").Comment("真实姓名").Optional().Annotations(entsql.Annotation{Size: 20}),
-		field.String("phone").Comment("联系电话").Unique().Annotations(entsql.Annotation{Size: 100}),
-		field.String("city").Comment("城市").Optional().Annotations(entsql.Annotation{Size: 20}),
-		field.Enum("gender").Values("MALE", "FEMALE").Optional().Comment("男/女"),
-		field.Uint8("age").Comment("年龄").Optional(),
-		field.Time("birthday").Comment("出生日期").Optional(),
-		field.String("password").Comment("密码").Annotations(entsql.Annotation{Size: 60}),
-		field.String("personal_profile").Comment("个人简介").Optional().Annotations(entsql.Annotation{Size: 1024}),
-		field.String("email").Comment("邮箱").Optional().Annotations(entsql.Annotation{Size: 30}),
+		field.String("user_name").Comment("用户名").Annotations(entsql.Annotation{Size: 20}, entsql.WithComments(true)),
+		field.String("real_name").Comment("真实姓名").Optional().Annotations(entsql.Annotation{Size: 20}, entsql.WithComments(true)),
+		field.String("phone").Comment("联系电话").Unique().Annotations(entsql.Annotation{Size: 100}, entsql.WithComments(true)),
+		field.String("city").Comment("城市").Optional().Annotations(entsql.Annotation{Size: 20}, entsql.WithComments(true)),
+		field.Enum("gender").Values("MALE", "FEMALE").Optional().Comment("男/女").Annotations(entsql.WithComments(true)),
+		field.Uint8("age").Comment("年龄").Optional().Annotations(entsql.WithComments(true)),
+		field.Time("birthday").Comment("出生日期").Optional().Annotations(entsql.WithComments(true)),
+		field.String("password").Comment("密码").Annotations(entsql.Annotation{Size: 60}, entsql.WithComments(true)),
+		field.String("personal_profile").Comment("个人简介").Optional().Annotations(entsql.Annotation{Size: 1024}, entsql.WithComments(true)),
+		field.String("email").Comment("邮箱").Optional().Annotations(entsql.Annotation{Size: 30}, entsql.WithComments(true)),
 	}
 }
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"goxenith/pkg/app"
 	"goxenith/pkg/config"
-	"goxenith/pkg/logger"
 	"strings"
 	"time"
 
@@ -148,7 +147,7 @@ func (jwt *JWT) IssueToken(userID uint64, userName string) string {
 	// 2. 根据 claims 生成token对象
 	token, err := jwt.createToken(claims)
 	if err != nil {
-		logger.LogIf(err)
+		//logger.LogIf(err)
 		return ""
 	}
 

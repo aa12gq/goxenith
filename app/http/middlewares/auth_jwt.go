@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	entUser "goxenith/app/models/ent/user"
+	"goxenith/dao"
 	"goxenith/pkg/auth"
 	"goxenith/pkg/config"
-	"goxenith/pkg/database"
 	"goxenith/pkg/model"
 	"goxenith/pkg/response"
 )
@@ -18,7 +18,7 @@ func AuthJWT() gin.HandlerFunc {
 			response.Unauthorized(c, fmt.Sprintf("请查看 %v 相关的接口认证文档", config.GetString("app.name")))
 			return
 		}
-		user, err := database.DB.User.Query().Where(entUser.IDEQ(claims.UserID), entUser.DeleteEQ(model.DeletedNo)).First(c)
+		user, err := dao.DB.User.Query().Where(entUser.IDEQ(claims.UserID), entUser.DeleteEQ(model.DeletedNo)).First(c)
 		if err != nil {
 			return
 		}

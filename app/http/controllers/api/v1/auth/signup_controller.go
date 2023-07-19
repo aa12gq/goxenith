@@ -6,8 +6,8 @@ import (
 	"goxenith/app/models/ent"
 	entUser "goxenith/app/models/ent/user"
 	"goxenith/app/requests"
+	"goxenith/dao"
 	"goxenith/pkg/auth"
-	"goxenith/pkg/database"
 	"goxenith/pkg/logger"
 	"goxenith/pkg/model"
 	"goxenith/pkg/response"
@@ -25,7 +25,7 @@ func (sc *SignupController) IsPhoneExist(c *gin.Context) {
 		return
 	}
 
-	exist, err := database.DB.User.Query().
+	exist, err := dao.DB.User.Query().
 		Where(entUser.PhoneEQ(request.Phone),
 			entUser.DeleteEQ(model.DeletedNo)).Exist(c)
 	if err != nil {
@@ -43,7 +43,7 @@ func (sc *SignupController) IsEmailExist(c *gin.Context) {
 		return
 	}
 
-	exist, err := database.DB.User.Query().
+	exist, err := dao.DB.User.Query().
 		Where(entUser.EmailEQ(request.Email),
 			entUser.DeleteEQ(model.DeletedNo)).Exist(c)
 	if err != nil {
@@ -86,7 +86,7 @@ func (sc *SignupController) SignupUsingPhone(c *gin.Context) {
 }
 
 func (sc *SignupController) phoneExists(c *gin.Context, phone string) bool {
-	exist, err := database.DB.User.Query().Where(entUser.PhoneEQ(phone)).Exist(c)
+	exist, err := dao.DB.User.Query().Where(entUser.PhoneEQ(phone)).Exist(c)
 	if err != nil {
 		response.Abort500(c, "查询手机号失败，请稍后尝试~")
 		return false
@@ -99,7 +99,7 @@ func (sc *SignupController) phoneExists(c *gin.Context, phone string) bool {
 }
 
 func (sc *SignupController) nameExists(c *gin.Context, name string) bool {
-	nameIsExist, err := database.DB.User.Query().Where(entUser.UserNameEQ(name)).Exist(c)
+	nameIsExist, err := dao.DB.User.Query().Where(entUser.UserNameEQ(name)).Exist(c)
 	if err != nil {
 		response.Abort500(c, "查询用户名失败，请稍后尝试~")
 		return false
@@ -112,7 +112,7 @@ func (sc *SignupController) nameExists(c *gin.Context, name string) bool {
 }
 
 func (sc *SignupController) createUser(c *gin.Context, request *pb.SignupUserUsingPhoneRequest) (*ent.User, bool) {
-	_user, err := database.DB.User.Create().
+	_user, err := dao.DB.User.Create().
 		SetUserName(request.Name).SetPhone(request.Phone).SetPassword(request.Password).Save(c)
 	if err != nil || _user.ID <= 0 {
 		logger.LogWarnIf("创建用户失败", err)

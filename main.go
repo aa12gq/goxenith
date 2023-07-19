@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"goxenith/app/cmd"
+	"goxenith/app/cmd/migrate"
+	"goxenith/app/cmd/serve"
 	_ "goxenith/app/models/ent/runtime"
 	"goxenith/bootstrap"
 	btsConig "goxenith/config"
@@ -19,22 +21,44 @@ func init() {
 func main() {
 
 	var rootCmd = &cobra.Command{
-		Use:   "Goxenith",
+		Use:   "serve",
 		Short: "A community project",
 		Long:  `Default will run "serve" command, you can use "-h" flag to see all subcommands`,
 		PersistentPreRun: func(command *cobra.Command, args []string) {
 			config.InitConfig(cmd.Env)
 			bootstrap.SetupLogger()
-			bootstrap.SetupDB()
+			//drv, f, err := dao.NewDAO()
+			//if err != nil {
+			//	return
+			//}
 			bootstrap.SetupRedis()
 		},
 	}
-
+	var CmdServe = &cobra.Command{
+		Use:   "serve",
+		Short: "Start web server",
+		RunE:  serve.RunWeb,
+		Args:  cobra.NoArgs,
+	}
+	var CmdMigrate = &cobra.Command{
+		Use:   "migrate",
+		Short: "数据迁移",
+		Long:  `数据迁移。将models下的schema同步到数据库，并进行相关数据初始化工作`,
+		Run:   migrate.RunUp,
+		Args:  cobra.MaximumNArgs(1),
+	}
 	rootCmd.AddCommand(
-		cmd.CmdServe,
+		CmdServe,
+		CmdMigrate,
 	)
-
-	cmd.RegisterDefaultCmd(rootCmd, cmd.CmdServe)
+	{
+		CmdMigrate.PersistentFlags().UintP("timeout", "t", 0, "迁移执行超时时间，单位：秒。大于等于0的整数，等于0时，永不超时。")
+		CmdMigrate.PersistentFlags().BoolP("verbose", "V", false, "显示详细日志，如：打印sql日志等。")
+		CmdMigrate.PersistentFlags().Bool("drop-column", false, "是否删除原有字段")
+		CmdMigrate.PersistentFlags().Bool("drop-index", false, "是否删除原有索引")
+		CmdMigrate.PersistentFlags().Bool("foreign-key", true, "是否创建外键")
+	}
+	cmd.RegisterDefaultCmd(rootCmd, CmdServe)
 	cmd.RegisterGlobalFlags(rootCmd)
 	rootCmd.SetHelpCommand(cmd.CobraHelpCommand(rootCmd))
 	rootCmd.SetUsageTemplate(cmd.CobraCommandUsageTemplate())
