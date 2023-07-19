@@ -36,6 +36,8 @@ func main() {
 
 	cmd.RegisterDefaultCmd(rootCmd, cmd.CmdServe)
 	cmd.RegisterGlobalFlags(rootCmd)
+	rootCmd.SetHelpCommand(cmd.CobraHelpCommand(rootCmd))
+	rootCmd.SetUsageTemplate(cmd.CobraCommandUsageTemplate())
 	if err := rootCmd.Execute(); err != nil {
 		console.Exit(fmt.Sprintf("Failed to run app with %v: %s", os.Args, err.Error()))
 	}
