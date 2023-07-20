@@ -22,7 +22,7 @@ func init() {
 func main() {
 
 	var rootCmd = &cobra.Command{
-		Use:   "serve",
+		Use:   "goxenith",
 		Short: "A community project",
 		Long:  `Default will run "serve" command, you can use "-h" flag to see all subcommands`,
 		PersistentPreRun: func(command *cobra.Command, args []string) {
