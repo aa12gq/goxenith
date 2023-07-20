@@ -1,0 +1,29 @@
+package schema
+
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema/field"
+	"goxenith/pkg/model"
+)
+
+type {{StructName}} struct {
+    ent.Schema
+}
+
+func ({{StructName}}) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		model.EntityStatMixin{},
+	}
+}
+
+// Fields of the {{StructName}}.
+func ({{StructName}}) Fields() []ent.Field {
+	return []ent.Field{
+		field.Uint64("id").Comment("{{StructName}}ID"),
+	}
+}
+
+// Edges of the {{StructName}}.
+func ({{StructName}}) Edges() []ent.Edge {
+	return nil
+}
