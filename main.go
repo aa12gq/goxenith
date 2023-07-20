@@ -22,27 +22,29 @@ func init() {
 func main() {
 
 	var rootCmd = &cobra.Command{
-		Use:   "goxenith",
-		Short: "A community project",
-		Long:  `Default will run "serve" command, you can use "-h" flag to see all subcommands`,
+		Use:  "goxenith",
+		Long: `默认运行 "serve". 使用 "-h" 参数查看所有可用命令.`,
 		PersistentPreRun: func(command *cobra.Command, args []string) {
 			config.InitConfig(cmd.Env)
 			bootstrap.SetupLogger()
 			bootstrap.SetupRedis()
+			bootstrap.SetupDB()
 		},
 	}
 	var CmdServe = &cobra.Command{
 		Use:   "serve",
-		Short: "Start web server",
+		Short: "服务启动",
+		Long:  `启动服务。提供服务及相关接口`,
 		RunE:  serve.RunWeb,
 		Args:  cobra.NoArgs,
 	}
 	var CmdMigrate = &cobra.Command{
-		Use:   "migrate",
-		Short: "数据迁移",
-		Long:  `数据迁移。将models下的schema同步到数据库，并进行相关数据初始化工作`,
-		Run:   migrate.RunUp,
-		Args:  cobra.MaximumNArgs(1),
+		Use:              "migrate",
+		Short:            "数据迁移",
+		Long:             `数据迁移。将models下的schema同步到数据库，并进行相关数据初始化`,
+		Run:              migrate.RunUp,
+		Args:             cobra.MaximumNArgs(1),
+		PersistentPreRun: func(*cobra.Command, []string) {},
 	}
 	rootCmd.AddCommand(
 		CmdServe,

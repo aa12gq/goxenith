@@ -10,6 +10,7 @@ import (
 	"goxenith/pkg/auth"
 	"goxenith/pkg/logger"
 	"goxenith/pkg/model"
+	"goxenith/pkg/password"
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
 )
@@ -29,6 +30,7 @@ func (sc *SignupController) IsPhoneExist(c *gin.Context) {
 		Where(entUser.PhoneEQ(request.Phone),
 			entUser.DeleteEQ(model.DeletedNo)).Exist(c)
 	if err != nil {
+		logger.LogWarnIf("查询出错", err)
 		panic(err)
 	}
 
@@ -113,7 +115,7 @@ func (sc *SignupController) nameExists(c *gin.Context, name string) bool {
 
 func (sc *SignupController) createUser(c *gin.Context, request *pb.SignupUserUsingPhoneRequest) (*ent.User, bool) {
 	_user, err := dao.DB.User.Create().
-		SetUserName(request.Name).SetPhone(request.Phone).SetPassword(request.Password).Save(c)
+		SetUserName(request.Name).SetPhone(request.Phone).SetPassword(password.BcryptPassword(request.Password)).Save(c)
 	if err != nil || _user.ID <= 0 {
 		logger.LogWarnIf("创建用户失败", err)
 		response.Abort500(c, "创建用户失败，请稍后尝试~")

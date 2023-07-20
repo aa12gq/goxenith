@@ -1,12 +1,16 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	v1 "goxenith/app/http/controllers/api/v1"
+	"goxenith/app/models/ent"
 	entUser "goxenith/app/models/ent/user"
 	"goxenith/app/requests"
 	"goxenith/dao"
 	"goxenith/pkg/auth"
+	"goxenith/pkg/logger"
+	"goxenith/pkg/password"
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
 )
@@ -52,17 +56,22 @@ func (lc *LoginController) LoginByPassword(c *gin.Context) {
 			entUser.UserNameEQ(request.Account),
 		),
 	).First(c)
-
 	if err != nil {
-		response.Unauthorized(c, "账号不存在或密码错误")
-	} else {
-		token := auth.NewJWT().IssueToken(user.ID, user.UserName)
-
-		response.JSON(c, pb.LoginByPhoneReply{
-			Uid:   user.ID,
-			Token: token,
-		})
+		if ent.IsNotFound(err) {
+			response.Abort404(c, "账号不存在")
+		}
+		logger.Warn(fmt.Sprintf("未找到账号为 %v 的用户信息", request.Account))
+		response.Abort500(c, "账号查询出错")
 	}
+
+	if !password.BcryptPasswordMatch(request.Password, user.Password) {
+		response.Unauthorized(c, "账号不存在或密码错误")
+	}
+	token := auth.NewJWT().IssueToken(user.ID, user.UserName)
+	response.JSON(c, pb.LoginByPhoneReply{
+		Uid:   user.ID,
+		Token: token,
+	})
 }
 
 // RefreshToken 刷新 Access Token
