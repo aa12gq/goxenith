@@ -3,16 +3,13 @@ package migrate
 import (
 	"context"
 	"github.com/spf13/cobra"
-	appCmd "goxenith/app/cmd"
 	"goxenith/app/models"
 	"goxenith/dao"
-	"goxenith/pkg/config"
 	"time"
 )
 
 func RunUp(cmd *cobra.Command, args []string) {
 	var err error
-	config.InitConfig(appCmd.Env)
 	var mCtx context.Context
 	timeout, _ := cmd.Flags().GetUint("timeout")
 	var cancel context.CancelFunc

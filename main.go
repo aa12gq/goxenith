@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"goxenith/app/cmd"
+	"goxenith/app/cmd/make"
 	"goxenith/app/cmd/migrate"
 	"goxenith/app/cmd/serve"
 	_ "goxenith/app/models/ent/runtime"
@@ -27,10 +28,6 @@ func main() {
 		PersistentPreRun: func(command *cobra.Command, args []string) {
 			config.InitConfig(cmd.Env)
 			bootstrap.SetupLogger()
-			//drv, f, err := dao.NewDAO()
-			//if err != nil {
-			//	return
-			//}
 			bootstrap.SetupRedis()
 		},
 	}
@@ -50,6 +47,7 @@ func main() {
 	rootCmd.AddCommand(
 		CmdServe,
 		CmdMigrate,
+		make.CmdMake,
 	)
 	{
 		CmdMigrate.PersistentFlags().UintP("timeout", "t", 0, "迁移执行超时时间，单位：秒。大于等于0的整数，等于0时，永不超时。")
