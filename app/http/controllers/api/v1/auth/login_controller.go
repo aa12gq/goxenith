@@ -66,6 +66,7 @@ func (lc *LoginController) LoginByPassword(c *gin.Context) {
 
 	if !password.BcryptPasswordMatch(request.Password, user.Password) {
 		response.Unauthorized(c, "账号不存在或密码错误")
+		return
 	}
 	token := auth.NewJWT().IssueToken(user.ID, user.UserName)
 	response.JSON(c, pb.LoginByPhoneReply{

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	controllers "goxenith/app/http/controllers/api/v1"
 	"goxenith/app/http/controllers/api/v1/auth"
 	"goxenith/app/http/middlewares"
 )
@@ -31,6 +32,10 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			// 支持手机号，Email 和 用户名
 			authGroup.POST("/login/using-password", lgc.LoginByPassword)
 			authGroup.POST("/login/refresh-token", lgc.RefreshToken)
+			uc := new(controllers.UsersController)
+
+			// 获取当前用户
+			v1.GET("/user", middlewares.AuthJWT(), uc.CurrentUser)
 
 		}
 	}
