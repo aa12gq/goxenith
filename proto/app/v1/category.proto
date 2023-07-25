@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package com.category.v1;
+
+option go_package = "goxenith/proto/category/v1;v1";
+
+// 分类
+message Category {
+  uint64 id = 1;
+  // 上级分类id(可为空)
+  uint64 parent_id = 2;
+  // 分类名称
+  // @gotags: valid:"name"
+  string name = 3;
+}
+
+// 分类树节点
+message CategoryTreeNode {
+  uint64 id = 1;
+  // 分类名称
+  // @gotags: valid:"name"
+  string name = 2;
+  // 上级分类节点(可为空)
+  uint64 parent_id = 3;
+  // 子节点
+  repeated CategoryTreeNode children = 4;
+}
+
+message CreateCategoryRequest {
+  Category category = 1;
+}
+
+message CreateCategoryReply {
+  Category category = 1;
+}
+
+
+message ListCategoryRequest {
+  // 上级分类id
+  uint64 parent_id = 1;
+}
+
+message ListCategoryReply {
+  repeated Category items = 1;
+}
+
+message GetCategoryRequest {
+  uint64 id = 1;
+}
+
+message GetCategoryReply {
+  Category category = 1;
+
+}
+
+message GetCategoryTreeRequest {
+}
+
+message GetCategoryTreeReply {
+  repeated CategoryTreeNode nodes = 1;
+}

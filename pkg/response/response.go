@@ -2,7 +2,7 @@ package response
 
 import (
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+	"goxenith/app/models/ent"
 	"goxenith/pkg/logger"
 	"net/http"
 )
@@ -88,7 +88,7 @@ func Error(c *gin.Context, err error, msg ...string) {
 	logger.LogIf(err)
 
 	// error 类型为『数据库未找到内容』
-	if err == gorm.ErrRecordNotFound {
+	if ent.IsNotFound(err) {
 		Abort404(c)
 		return
 	}
