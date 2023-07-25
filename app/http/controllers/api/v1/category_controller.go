@@ -159,46 +159,29 @@ func (rp *CategoryController) GetMaterialCategoryTree(ctx *gin.Context) {
 		response.Error(ctx, errors.New("分类查询出错"))
 		return
 	}
-	nodes := &CategoryTree{Nodes: rp.findCategoryChildren(cats, nil)}
+	nodes := &CategoryTree{Nodes: rp.findCategoryChildren(cats)}
 	response.JSON(ctx, rp.convertToPbCategoryChildren(nil, nodes.Nodes))
 }
 
-func (rp *CategoryController) findCategoryChildren(cats []*ent.Category, parent *ent.Category) []*CategoryTreeNode {
-	var children []*CategoryTreeNode
-	var childrenLeft []*ent.Category
-	var parentId uint64 = 0
-	if parent != nil {
-		parentId = parent.ID
-	}
+func (rp *CategoryController) findCategoryChildren(cats []*ent.Category) []*CategoryTreeNode {
+	catMap := make(map[uint64][]*ent.Category)
 	for _, cat := range cats {
-		if parentId != cat.ParentID {
-			childrenLeft = append(childrenLeft, cat)
-			continue
-		}
-		node := &CategoryTreeNode{
-			ID:   cat.ID,
-			Name: cat.Name,
-		}
-		if parent != nil {
-			node.Parent = &CategoryTreeNode{
-				ID:       parent.ID,
-				Name:     parent.Name,
-				Children: children,
-			}
-		}
-		children = append(children, node)
+		catMap[cat.ParentID] = append(catMap[cat.ParentID], cat)
 	}
 
-	for _, node := range children {
-		pid := uint64(0)
-		if node.Parent != nil {
-			pid = node.Parent.ID
+	return rp.getChildren(0, catMap)
+}
+
+func (rp *CategoryController) getChildren(parentId uint64, catMap map[uint64][]*ent.Category) []*CategoryTreeNode {
+	children := make([]*CategoryTreeNode, 0)
+
+	for _, cat := range catMap[parentId] {
+		node := &CategoryTreeNode{
+			ID:       cat.ID,
+			Name:     cat.Name,
+			Children: rp.getChildren(cat.ID, catMap),
 		}
-		node.Children = rp.findCategoryChildren(childrenLeft, &ent.Category{
-			ID:       node.ID,
-			Name:     node.Name,
-			ParentID: pid,
-		})
+		children = append(children, node)
 	}
 	return children
 }
@@ -207,15 +190,15 @@ func (s *CategoryController) convertToPbCategoryChildren(parent *CategoryTreeNod
 	var pbNodes []*pb.CategoryTreeNode
 	for _, n := range nodes {
 		pbNode := &pb.CategoryTreeNode{
-			Id:   n.ID,
-			Name: n.Name,
+			Id:       n.ID,
+			Name:     n.Name,
+			Children: s.convertToPbCategoryChildren(n, n.Children),
 		}
 		if parent != nil {
 			pbNode.ParentId = parent.ID
 		} else {
 			pbNode.ParentId = 0
 		}
-		pbNode.Children = s.convertToPbCategoryChildren(n, n.Children)
 		pbNodes = append(pbNodes, pbNode)
 	}
 	return pbNodes
