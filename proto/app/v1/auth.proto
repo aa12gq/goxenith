@@ -82,3 +82,12 @@ message LoginByPasswordReply {
   string token = 2;
 }
 
+
+message VerifyCodeEmailRequest {
+  // @gotags: valid:"captcha_id"
+  string captcha_id = 1;
+  // @gotags: valid:"captcha_answer"
+  string captcha_answer = 2;
+  // @gotags: valid:"email"
+  string email = 3;
+}

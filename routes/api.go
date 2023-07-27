@@ -26,6 +26,7 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			// 图片验证码，需要加限流
 			authGroup.POST("/verify-codes/captcha", middlewares.LimitPerRoute("50-H"), vcc.ShowCaptcha)
 			authGroup.POST("/verify-codes/phone", middlewares.LimitPerRoute("20-H"), vcc.SendUsingPhone)
+			authGroup.POST("/verify-codes/email", middlewares.LimitPerRoute("20-H"), vcc.SendUsingEmail)
 			lgc := new(auth.LoginController)
 			// 使用手机号，短信验证码进行登录
 			authGroup.POST("/login/using-phone", lgc.LoginByPhone)

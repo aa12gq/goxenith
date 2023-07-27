@@ -55,7 +55,7 @@ func (c *Captcha) GenerateCaptcha() (id string, b64s string, err error) {
 func (c *Captcha) VerifyCaptcha(id string, answer string) (match bool) {
 
 	// 方便本地和 API 自动测试
-	if !app.IsProduction() && id == config.GetString("captcha.testing_key") {
+	if !app.IsProduction() && id == config.GetString("captcha.testing_key") || config.GetString("verifycode.debug_code") == answer {
 		return true
 	}
 	// 第三个参数是验证后是否删除，我们选择 false
