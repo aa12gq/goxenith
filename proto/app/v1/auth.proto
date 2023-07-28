@@ -34,7 +34,30 @@ message VerifyCodePhoneRequest {
   string phone = 3;
 }
 
-// 用户注册
+// 用户邮箱注册
+message SignupUsingEmailRequest {
+  // @gotags: valid:"email"
+  string email = 1;
+  // @gotags: valid:"verify_code"
+  string verify_code = 2;
+  // @gotags: valid:"name"
+  string name = 3;
+  // @gotags: valid:"password"
+  string password = 4;
+  // @gotags: valid:"password_confirm"
+  string password_confirm = 5;
+}
+
+message SignupUsingEmailReply {
+  message Data {
+    uint64 id = 1;
+    string name = 2;
+  }
+  Data data = 1;
+  string token = 2;
+}
+
+// 用户手机注册
 message SignupUserUsingPhoneRequest {
   // @gotags: valid:"phone"
   string phone = 1;

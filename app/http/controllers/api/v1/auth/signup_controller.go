@@ -70,7 +70,7 @@ func (sc *SignupController) SignupUsingPhone(c *gin.Context) {
 		return
 	}
 
-	_user, res := sc.createUser(c, &request)
+	_user, res := sc.createUserByPhone(c, &request)
 	if !res {
 		return
 	}
@@ -85,6 +85,34 @@ func (sc *SignupController) SignupUsingPhone(c *gin.Context) {
 		Token: token,
 	})
 
+}
+
+func (sc *SignupController) SignupUsingEmail(c *gin.Context) {
+	request := pb.SignupUsingEmailRequest{}
+	if ok := requests.Validate(c, &request, requests.SignupUsingEmail); !ok {
+		return
+	}
+
+	if exist := sc.emailExists(c, request.Email); exist {
+		return
+	}
+
+	if exist := sc.nameExists(c, request.Name); exist {
+		return
+	}
+
+	_user, res := sc.createUserByEmail(c, &request)
+	if !res {
+		return
+	}
+	token := auth.NewJWT().IssueToken(_user.ID, _user.UserName)
+	response.JSON(c, &pb.SignupUsingEmailReply{
+		Data: &pb.SignupUsingEmailReply_Data{
+			Id:   _user.ID,
+			Name: _user.UserName,
+		},
+		Token: token,
+	})
 }
 
 func (sc *SignupController) phoneExists(c *gin.Context, phone string) bool {
@@ -113,7 +141,7 @@ func (sc *SignupController) nameExists(c *gin.Context, name string) bool {
 	return nameIsExist
 }
 
-func (sc *SignupController) createUser(c *gin.Context, request *pb.SignupUserUsingPhoneRequest) (*ent.User, bool) {
+func (sc *SignupController) createUserByPhone(c *gin.Context, request *pb.SignupUserUsingPhoneRequest) (*ent.User, bool) {
 	_user, err := dao.DB.User.Create().
 		SetUserName(request.Name).SetPhone(request.Phone).SetPassword(password.BcryptPassword(request.Password)).Save(c)
 	if err != nil || _user.ID <= 0 {
@@ -122,4 +150,28 @@ func (sc *SignupController) createUser(c *gin.Context, request *pb.SignupUserUsi
 		return nil, false
 	}
 	return _user, true
+}
+
+func (sc *SignupController) createUserByEmail(c *gin.Context, request *pb.SignupUsingEmailRequest) (*ent.User, bool) {
+	_user, err := dao.DB.User.Create().
+		SetUserName(request.Name).SetPhone(request.Email).SetPassword(password.BcryptPassword(request.Password)).Save(c)
+	if err != nil || _user.ID <= 0 {
+		logger.LogWarnIf("创建用户失败", err)
+		response.Abort500(c, "创建用户失败，请稍后尝试~")
+		return nil, false
+	}
+	return _user, true
+}
+
+func (sc *SignupController) emailExists(c *gin.Context, phone string) bool {
+	exist, err := dao.DB.User.Query().Where(entUser.EmailEQ(phone)).Exist(c)
+	if err != nil {
+		response.Abort500(c, "查询邮箱失败，请稍后尝试~")
+		return false
+	}
+
+	if exist {
+		response.Abort400(c, "该邮箱已存在")
+	}
+	return exist
 }
