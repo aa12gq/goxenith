@@ -6,10 +6,10 @@ tmp_dir = "tmp"
 [build]
 # 由`cmd`命令得到的二进制文件名
 # Windows平台示例：bin = "./tmp/main.exe"
-bin = "./tmp/main"
+bin = "./tmp/goxenith"
 # 只需要写你平常编译使用的shell命令。你也可以使用 `make`
 # Windows平台示例: cmd = "go build -o ./tmp/main.exe ."
-cmd = "go build -o ./tmp/main ."
+cmd = "go build -o ./tmp/goxenith ."
 # 如果文件更改过于频繁，则没有必要在每次更改时都触发构建。可以设置触发构建的延迟时间
 delay = 1000
 # 忽略这些文件扩展名或目录

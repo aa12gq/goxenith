@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package com.article.v1;
+
+option go_package = "goxenith/proto/article/v1;v1";
+
+enum ArticleStatus {
+    // 草稿
+    DRAFT = 0;
+    // 生效
+    EFFECT = 1;
+}
+
+message Article {
+  // 博文ID
+  uint64 id = 1;
+  // 博文作者
+  uint64 author_id = 2;
+  // 社区ID
+  uint64 community_id = 3;
+  // 博文标题
+  string title = 4;
+  // 博文摘要
+  string summary = 5;
+  // 博文内容
+  string content = 6;
+  // 博文点赞数量
+  int32 links = 7;
+  // 博文浏览量
+  int32 views = 8;
+  // 博文状态
+  ArticleStatus status = 9;
+}
+
+message CreateArticleRequest {
+  // 社区ID
+  // @gotags: valid:"community_id"
+  uint64 community_id = 1;
+  // @gotags: valid:"title"
+  // 博文标题
+  string title = 2;
+  // 博文摘要
+  // @gotags: valid:"summary"
+  string summary = 3;
+  // 博文内容
+  // @gotags: valid:"content"
+  string content = 4;
+  // 博文状态
+  // @gotags: valid:"status"
+  ArticleStatus status = 5;
+}
+
+message CreateArticleReply {}

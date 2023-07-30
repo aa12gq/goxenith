@@ -49,5 +49,11 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			categoryGroup.POST("", middlewares.AuthJWT(), cate.CreateCategory)
 			categoryGroup.GET("/tree", cate.GetMaterialCategoryTree)
 		}
+		// 博文
+		articleGroup := v1.Group("/articles")
+		{
+			article := new(controllers.ArticleController)
+			articleGroup.POST("/create", middlewares.AuthJWT(), article.CreateArticle)
+		}
 	}
 }
