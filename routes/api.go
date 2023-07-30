@@ -53,6 +53,7 @@ func RegisterAPIRoutes(r *gin.Engine) {
 		articleGroup := v1.Group("/articles")
 		{
 			article := new(controllers.ArticleController)
+			articleGroup.GET("", article.ListArticle)
 			articleGroup.POST("/create", middlewares.AuthJWT(), article.CreateArticle)
 		}
 	}

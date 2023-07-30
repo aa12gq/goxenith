@@ -23,7 +23,7 @@ func (Article) Mixin() []ent.Mixin {
 func (Article) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("author_id"),
-		index.Fields("created_at"),
+		index.Fields("community_id"),
 	}
 }
 
