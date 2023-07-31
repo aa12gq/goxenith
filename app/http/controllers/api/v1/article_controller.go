@@ -86,11 +86,6 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 		return
 	}
 
-	stateMap := map[entArtic.Status]pb.ArticleStatus{
-		entArtic.StatusDRAFT:  pb.ArticleStatus_DRAFT,
-		entArtic.StatusEFFECT: pb.ArticleStatus_EFFECT,
-	}
-
 	rv := make([]*pb.Article, 0, len(articles))
 	for _, v := range articles {
 		rv = append(rv, &pb.Article{
@@ -104,7 +99,7 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 			Content:       v.Content,
 			Links:         int32(v.Likes),
 			Views:         int32(v.Views),
-			Status:        stateMap[v.Status],
+			Status:        pb.ArticleStatus(pb.ArticleStatus_value[v.Status.String()]),
 		})
 	}
 
