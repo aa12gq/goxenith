@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"goxenith/app/models/ent"
 	entArtic "goxenith/app/models/ent/article"
 	entCommunity "goxenith/app/models/ent/community"
 	"goxenith/app/requests"
@@ -76,21 +77,9 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 		return
 	}
 
-	var rv []*pb.Article
+	rv := make([]*pb.Article, 0, len(articles))
 	for _, v := range articles {
-		rv = append(rv, &pb.Article{
-			Id:            v.ID,
-			AuthorId:      v.AuthorID,
-			AuthorName:    v.Edges.Author.UserName,
-			CommunityId:   v.CommunityID,
-			CommunityName: v.Edges.Community.Name,
-			Title:         v.Title,
-			Summary:       v.Summary,
-			Content:       v.Content,
-			Links:         int32(v.Likes),
-			Views:         int32(v.Views),
-			Status:        pb.ArticleStatus(pb.ArticleStatus_value[v.Status.String()]),
-		})
+		rv = append(rv, convertArticle(v))
 	}
 
 	reply := &pb.ListArticleReply{
@@ -100,4 +89,98 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 		Page:  uint32(page),
 	}
 	response.JSON(ctx, reply)
+}
+
+func (a *ArticleController) GetArticle(ctx *gin.Context) {
+	idStr, _ := ctx.Params.Get("id")
+	id, _ := strconv.Atoi(idStr)
+
+	article, err := dao.DB.Article.Query().Where(entArtic.IDEQ(uint64(id)), entArtic.DeleteEQ(model.DeletedNo)).WithAuthor().WithCommunity().First(ctx)
+	if err != nil {
+		response.Abort404(ctx, fmt.Sprintf("未找到ID为 %v 的博文数据", id))
+		return
+	}
+
+	reply := &pb.GetArticleReply{Article: convertArticle(article)}
+
+	response.JSON(ctx, reply)
+}
+
+func (a *ArticleController) UpdateArticle(ctx *gin.Context) {
+	request := pb.UpdateArticleRequest{}.Article
+
+	if ok := requests.Validate(ctx, request, requests.ArticleSave); !ok {
+		return
+	}
+	currentUser := auth.CurrentUser(ctx)
+	if currentUser.ID == 0 {
+		return
+	}
+
+	article, err := dao.DB.Article.Query().Where(entArtic.IDEQ(request.Id), entArtic.DeleteEQ(model.DeletedNo)).First(ctx)
+	if err != nil {
+		response.Abort500(ctx, "保存失败")
+		return
+	}
+
+	if article.AuthorID != currentUser.ID {
+		response.Abort403(ctx)
+		return
+	}
+
+	err = article.Update().
+		SetTitle(request.Title).
+		SetSummary(request.Summary).
+		SetContent(request.Content).
+		SetStatus(entArtic.Status(request.Status.String())).Exec(ctx)
+	if err != nil {
+		response.Abort500(ctx, "保存失败")
+		return
+	}
+
+	response.Success(ctx)
+}
+
+func (a *ArticleController) DeleteArticle(ctx *gin.Context) {
+	idStr, _ := ctx.Params.Get("id")
+	id, _ := strconv.Atoi(idStr)
+
+	currentUser := auth.CurrentUser(ctx)
+	if currentUser.ID == 0 {
+		return
+	}
+
+	article, err := dao.DB.Article.Query().Where(entArtic.IDEQ(uint64(id)), entArtic.DeleteEQ(model.DeletedNo)).First(ctx)
+	if err != nil {
+		response.Abort500(ctx, "删除失败")
+		return
+	}
+
+	if article.AuthorID != currentUser.ID {
+		response.Abort403(ctx)
+		return
+	}
+	err = article.Update().SetDelete(model.DeletedYes).Exec(ctx)
+	if err != nil {
+		response.Abort500(ctx, "删除失败")
+		return
+	}
+
+	response.Success(ctx)
+}
+
+func convertArticle(article *ent.Article) *pb.Article {
+	return &pb.Article{
+		Id:            article.ID,
+		AuthorId:      article.AuthorID,
+		AuthorName:    article.Edges.Author.UserName,
+		CommunityId:   article.CommunityID,
+		CommunityName: article.Edges.Community.Name,
+		Title:         article.Title,
+		Summary:       article.Summary,
+		Content:       article.Content,
+		Links:         int32(article.Likes),
+		Views:         int32(article.Views),
+		Status:        pb.ArticleStatus(pb.ArticleStatus_value[article.Status.String()]),
+	}
 }

@@ -54,6 +54,9 @@ func RegisterAPIRoutes(r *gin.Engine) {
 		{
 			article := new(controllers.ArticleController)
 			articleGroup.GET("articles/:page", article.ListArticle)
+			articleGroup.GET("/article/:id", article.GetArticle)
+			articleGroup.DELETE("/article/:id", article.DeleteArticle)
+			articleGroup.PUT("/article", article.UpdateArticle)
 			articleGroup.POST("article/create", middlewares.AuthJWT(), article.CreateArticle)
 		}
 	}

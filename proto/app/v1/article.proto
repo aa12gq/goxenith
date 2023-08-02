@@ -13,44 +13,55 @@ enum ArticleStatus {
 
 message Article {
   // 博文ID
+  // @inject_tag: json:"id"
   uint64 id = 1;
   // 博文作者
+  // @inject_tag: json:"author_id"
   uint64 author_id = 2;
   // 作者名称
+  // @inject_tag: json:"author_name"
   string author_name = 3;
   // 社区ID
+  // @inject_tag: json:"community_id"
   uint64 community_id = 4;
   // 社区名称
+  // @inject_tag: json:"community_name"
   string community_name = 5;
   // 博文标题
+  // @inject_tag: json:"title"
   string title = 6;
   // 博文摘要
+  // @inject_tag: json:"summary"
   string summary = 7;
   // 博文内容
+  // @inject_tag: json:"content"
   string content = 8;
   // 博文点赞数量
+  // @inject_tag: json:"links"
   int32 links = 9;
   // 博文浏览量
+  // @gotags: json:"views2"
   int32 views = 10;
   // 博文状态
+  // @inject_tag: json:"status"
   ArticleStatus status = 11;
 }
 
 message CreateArticleRequest {
   // 社区ID
-  // @gotags: valid:"community_id"
+  // @inject_tag: valid:"community_id"
   uint64 community_id = 1;
-  // @gotags: valid:"title"
   // 博文标题
+  // @inject_tag: valid:"title"
   string title = 2;
   // 博文摘要
-  // @gotags: valid:"summary"
+  // @inject_tag: valid:"summary"
   string summary = 3;
   // 博文内容
-  // @gotags: valid:"content"
+  // @inject_tag: valid:"content"
   string content = 4;
   // 博文状态
-  // @gotags: valid:"status"
+  // @inject_tag: valid:"status"
   ArticleStatus status = 5;
 }
 
@@ -63,11 +74,30 @@ message ListArticleRequest {
 
 message ListArticleReply {
   // 博文
+  // @inject_tag: json:"data"
   repeated Article data = 1;
   // 总数量
+  // @inject_tag: json:"total"
   uint32 total = 2;
   // 当前返回数量
+  // @inject_tag: json:"count"
   uint32 count = 3;
   // 当前页
+  // @inject_tag: json:"page"
   uint32 page = 4;
 };
+
+
+message GetArticleRequest {
+  uint64 id = 1;
+}
+
+message GetArticleReply {
+  Article article = 1;
+}
+
+message UpdateArticleRequest {
+  Article article = 1;
+}
+
+message UpdateArticleReply {}
