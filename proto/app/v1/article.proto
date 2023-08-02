@@ -57,14 +57,8 @@ message CreateArticleRequest {
 message CreateArticleReply {}
 
 message ListArticleRequest {
-  // 社区ID
-  uint64 community_id  = 1;
-  // 博文标题
-  string title = 2;
   // 分页页码
-  uint32 page_num = 3;
-  // 每页数量
-  uint32 page_size = 4;
+  uint32 page = 1;
 }
 
 message ListArticleReply {

@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"entgo.io/ent/dialect/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	entArtic "goxenith/app/models/ent/article"
@@ -14,6 +13,7 @@ import (
 	"goxenith/pkg/paginator"
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
+	"strconv"
 )
 
 type ArticleController struct {
@@ -58,23 +58,13 @@ func (a *ArticleController) CreateArticle(ctx *gin.Context) {
 }
 
 func (a *ArticleController) ListArticle(ctx *gin.Context) {
-	request := pb.ListArticleRequest{}
-	if err := ctx.ShouldBindJSON(&request); err != nil {
-		response.BadRequest(ctx, err, "请求解析错误，请确认请求格式是否正确。上传文件请使用 multipart 标头，参数请使用 JSON 格式。")
-		return
-	}
-
+	pageParam, _ := ctx.Params.Get("page")
+	page, _ := strconv.Atoi(pageParam)
 	query := dao.DB.Article.Query().
-		Offset(int(paginator.GetPageOffset(request.PageNum, request.PageSize))).
-		Limit(int(request.PageSize)).Where(func(selector *sql.Selector) {
-		selector.Where(sql.Like(selector.C(entArtic.FieldTitle), fmt.Sprintf("%%%v%%", request.Title)))
-	}).Where(entArtic.DeleteEQ(model.DeletedNo)).WithCommunity().WithAuthor()
+		Offset(int(paginator.GetPageOffset(uint32(page), 20))).
+		Limit(20).Where(entArtic.DeleteEQ(model.DeletedNo)).Where(entArtic.CommunityIDEQ(1)).WithCommunity().WithAuthor()
 
-	if request.CommunityId != 0 {
-		query = query.Where(entArtic.CommunityIDEQ(request.CommunityId))
-	}
-
-	total, err := dao.DB.Article.Query().Where(entArtic.DeleteEQ(model.DeletedNo)).Where(entArtic.CommunityIDEQ(request.CommunityId)).Count(ctx)
+	total, err := dao.DB.Article.Query().Where(entArtic.DeleteEQ(model.DeletedNo)).Where(entArtic.CommunityIDEQ(1)).Count(ctx)
 	if err != nil {
 		response.Abort404(ctx, "未找到博文列表数据")
 		return
@@ -86,7 +76,7 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 		return
 	}
 
-	rv := make([]*pb.Article, 0, len(articles))
+	var rv []*pb.Article
 	for _, v := range articles {
 		rv = append(rv, &pb.Article{
 			Id:            v.ID,
@@ -107,7 +97,7 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 		Data:  rv,
 		Total: uint32(total),
 		Count: uint32(len(rv)),
-		Page:  request.PageNum,
+		Page:  uint32(page),
 	}
 	response.JSON(ctx, reply)
 }
