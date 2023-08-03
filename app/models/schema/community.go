@@ -22,7 +22,7 @@ func (Community) Fields() []ent.Field {
 	return []ent.Field{
 		field.Uint64("id").Comment("社区ID"),
 		field.String("name").Comment("社区名称"),
-		field.String("image").Comment("社区图片").Optional(),
+		field.String("logo").Comment("社区logo").Optional(),
 	}
 }
 

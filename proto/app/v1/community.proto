@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package com.community.v1;
+
+option go_package = "goxenith/proto/community/v1;v1";
+
+
+message Community {
+  // 社区ID
+  // @inject_tag: json:"id"
+  uint64 id = 1;
+  // 社区名称
+  // @inject_tag: json:"name"
+  string name = 2;
+  // 社区图标
+  // @inject_tag: json:"logo"
+  string logo = 3;
+}
+
+
+message ListCommunityRequest {}
+
+message ListCommunityReply {
+  Community community = 1;
+}

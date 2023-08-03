@@ -49,14 +49,20 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			categoryGroup.POST("", middlewares.AuthJWT(), cate.CreateCategory)
 			categoryGroup.GET("/tree", cate.GetMaterialCategoryTree)
 		}
+		// 社区
+		communityGroup := v1.Group("/communitys")
+		{
+			community := new(controllers.CommunityController)
+			communityGroup.GET("", community.ListCommunity)
+		}
 		// Go社区博文
 		articleGroup := v1.Group("go")
 		{
 			article := new(controllers.ArticleController)
 			articleGroup.GET("articles/:page", article.ListArticle)
 			articleGroup.GET("/article/:id", article.GetArticle)
-			articleGroup.DELETE("/article/:id", article.DeleteArticle)
-			articleGroup.PUT("/article", article.UpdateArticle)
+			articleGroup.DELETE("/article/:id", middlewares.AuthJWT(), article.DeleteArticle)
+			articleGroup.PUT("/article", middlewares.AuthJWT(), article.UpdateArticle)
 			articleGroup.POST("article/create", middlewares.AuthJWT(), article.CreateArticle)
 		}
 	}
