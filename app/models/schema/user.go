@@ -33,6 +33,7 @@ func (User) Fields() []ent.Field {
 		field.String("password").Comment("密码").Annotations(entsql.Annotation{Size: 60}, entsql.WithComments(true)),
 		field.String("personal_profile").Comment("个人简介").Optional().Annotations(entsql.Annotation{Size: 1024}, entsql.WithComments(true)),
 		field.String("email").Comment("邮箱").Optional().Annotations(entsql.Annotation{Size: 30}, entsql.WithComments(true)),
+		field.String("avatar").Comment("头像").Optional().Annotations(entsql.WithComments(true)),
 	}
 }
 

@@ -174,6 +174,7 @@ func convertArticle(article *ent.Article) *pb.Article {
 		Id:            article.ID,
 		AuthorId:      article.AuthorID,
 		AuthorName:    article.Edges.Author.UserName,
+		AuthorAvatar:  article.Edges.Author.Avatar,
 		CommunityId:   article.CommunityID,
 		CommunityName: article.Edges.Community.Name,
 		Title:         article.Title,

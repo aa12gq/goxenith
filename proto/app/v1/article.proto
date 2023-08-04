@@ -21,30 +21,31 @@ message Article {
   // 作者名称
   // @inject_tag: json:"author_name"
   string author_name = 3;
+  string author_avatar = 4;
   // 社区ID
   // @inject_tag: json:"community_id"
-  uint64 community_id = 4;
+  uint64 community_id = 5;
   // 社区名称
   // @inject_tag: json:"community_name"
-  string community_name = 5;
+  string community_name = 6;
   // 博文标题
   // @inject_tag: json:"title"
-  string title = 6;
+  string title = 7;
   // 博文摘要
   // @inject_tag: json:"summary"
-  string summary = 7;
+  string summary = 8;
   // 博文内容
   // @inject_tag: json:"content"
-  string content = 8;
+  string content = 9;
   // 博文点赞数量
   // @inject_tag: json:"links"
-  int32 links = 9;
+  int32 links = 10;
   // 博文浏览量
   // @gotags: json:"views2"
-  int32 views = 10;
+  int32 views = 11;
   // 博文状态
   // @inject_tag: json:"status"
-  ArticleStatus status = 11;
+  ArticleStatus status = 12;
 }
 
 message CreateArticleRequest {
