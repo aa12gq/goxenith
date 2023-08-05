@@ -23,6 +23,7 @@ func SetupDB() {
 	if err != nil {
 		panic(err)
 	}
+
 	db.SetMaxIdleConns(config.GetInt("database.mysql.max_idle_connections"))
 	db.SetMaxOpenConns(config.GetInt("database.mysql.max_open_connections"))
 	db.SetConnMaxLifetime(time.Duration(config.GetInt("database.mysql.max_life_seconds")) * time.Second)

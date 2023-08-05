@@ -1,6 +1,8 @@
 syntax = "proto3";
 
 package com.article.v1;
+import "google/protobuf/timestamp.proto";
+
 
 option go_package = "goxenith/proto/article/v1;v1";
 
@@ -16,17 +18,18 @@ message Article {
   // @inject_tag: json:"id"
   uint64 id = 1;
   // 博文作者
-  // @inject_tag: json:"author_id"
+  // @inject_tag: json:"authorId"
   uint64 author_id = 2;
   // 作者名称
-  // @inject_tag: json:"author_name"
+  // @inject_tag: json:"authorName"
   string author_name = 3;
+  // @inject_tag: json:"authorAvatar"
   string author_avatar = 4;
   // 社区ID
-  // @inject_tag: json:"community_id"
+  // @inject_tag: json:"communityId"
   uint64 community_id = 5;
   // 社区名称
-  // @inject_tag: json:"community_name"
+  // @inject_tag: json:"communityName"
   string community_name = 6;
   // 博文标题
   // @inject_tag: json:"title"
@@ -41,11 +44,17 @@ message Article {
   // @inject_tag: json:"links"
   int32 links = 10;
   // 博文浏览量
-  // @gotags: json:"views2"
+  // @gotags: json:"views"
   int32 views = 11;
   // 博文状态
   // @inject_tag: json:"status"
   ArticleStatus status = 12;
+  // 创建时间
+  // @inject_tag: json:"createdDate"
+  google.protobuf.Timestamp created_date = 13;
+  // 更新时间
+  // @inject_tag: json:"updatedDate"
+  google.protobuf.Timestamp updated_date = 14;
 }
 
 message CreateArticleRequest {

@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"goxenith/app/models/ent"
 	entArtic "goxenith/app/models/ent/article"
 	entCommunity "goxenith/app/models/ent/community"
@@ -61,17 +62,29 @@ func (a *ArticleController) CreateArticle(ctx *gin.Context) {
 func (a *ArticleController) ListArticle(ctx *gin.Context) {
 	pageParam, _ := ctx.Params.Get("page")
 	page, _ := strconv.Atoi(pageParam)
-	query := dao.DB.Article.Query().
-		Offset(int(paginator.GetPageOffset(uint32(page), 20))).
-		Limit(20).Where(entArtic.DeleteEQ(model.DeletedNo)).Where(entArtic.CommunityIDEQ(1)).WithCommunity().WithAuthor()
+	offset := int(paginator.GetPageOffset(uint32(page), 20))
 
-	total, err := dao.DB.Article.Query().Where(entArtic.DeleteEQ(model.DeletedNo)).Where(entArtic.CommunityIDEQ(1)).Count(ctx)
+	tx, err := dao.DB.BeginTx(ctx, nil)
 	if err != nil {
 		response.Abort404(ctx, "未找到博文列表数据")
 		return
 	}
 
+	query := tx.Article.Query().
+		Offset(offset).
+		Limit(20).
+		Where(entArtic.DeleteEQ(model.DeletedNo)).
+		Where(entArtic.CommunityIDEQ(1)).
+		WithCommunity().
+		WithAuthor()
+
 	articles, err := query.All(ctx)
+	if err != nil {
+		response.Abort404(ctx, "未找到博文列表数据")
+		return
+	}
+
+	total, err := query.Count(ctx)
 	if err != nil {
 		response.Abort404(ctx, "未找到博文列表数据")
 		return
@@ -183,5 +196,7 @@ func convertArticle(article *ent.Article) *pb.Article {
 		Links:         int32(article.Likes),
 		Views:         int32(article.Views),
 		Status:        pb.ArticleStatus(pb.ArticleStatus_value[article.Status.String()]),
+		CreatedDate:   timestamppb.New(article.CreatedAt),
+		UpdatedDate:   timestamppb.New(article.UpdatedAt),
 	}
 }
