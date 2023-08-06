@@ -42,7 +42,7 @@ func main() {
 		Use:              "migrate",
 		Short:            "数据迁移",
 		Long:             `数据迁移。将models下的schema同步到数据库，并进行相关数据初始化`,
-		Run:              migrate.RunUp,
+		Run:              migrate.Migrate,
 		Args:             cobra.MaximumNArgs(1),
 		PersistentPreRun: func(*cobra.Command, []string) {},
 	}

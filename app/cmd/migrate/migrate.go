@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func RunUp(cmd *cobra.Command, args []string) {
+func Migrate(cmd *cobra.Command, args []string) {
 	var err error
 	var mCtx context.Context
 
