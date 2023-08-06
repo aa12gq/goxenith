@@ -13,6 +13,7 @@ func RunWeb(cmd *cobra.Command, args []string) error {
 	gin.SetMode(gin.DebugMode)
 	router := gin.New()
 	bootstrap.SetupRoute(router)
+	bootstrap.SetupOss()
 
 	err := router.Run(":" + config.Get("app.port"))
 	if err != nil {

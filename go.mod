@@ -29,6 +29,7 @@ require (
 require (
 	ariga.io/atlas v0.12.1-0.20230620155259-b8e83e5e8ad6 // indirect
 	github.com/agext/levenshtein v1.2.1 // indirect
+	github.com/aliyun/aliyun-oss-go-sdk v2.2.8+incompatible // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
@@ -79,6 +80,7 @@ require (
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/time v0.1.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/sqlite v1.5.2 // indirect

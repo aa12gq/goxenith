@@ -2,6 +2,8 @@
 package model
 
 import (
+	"encoding/json"
+	"fmt"
 	"gorm.io/plugin/soft_delete"
 
 	"time"
@@ -42,4 +44,29 @@ type EntMigrateOptions struct {
 	Debug bool
 	// 迁移执行超时时间，单位：秒。大于等于0的整数，等于0时，永不超时。
 	Timeout uint
+}
+
+// Image 附件信息(json)字段数据结构，用于保存各种记录的附件信息
+type Image struct {
+	// 文件服务系统存储对象id
+	Id             string `json:"id"`
+	OriginFilename string `json:"originFileName"`
+	// 文件访问路径. 完整url
+	Path string `json:"path"`
+}
+
+// Images 封装用于底层sql scan接口. 例如:
+//
+//	var Image []*Image
+//	row, _ := db.QueryRow("select Image from article")
+//	row.Scan(&Image)
+type Images []*Image
+
+// Scan 实现sql Scanner接口
+func (a *Images) Scan(src any) error {
+	jb, ok := src.([]byte)
+	if !ok {
+		return fmt.Errorf("image's type must be []byte, but got %#v", src)
+	}
+	return json.Unmarshal(jb, a)
 }

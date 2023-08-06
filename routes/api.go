@@ -65,5 +65,10 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			articleGroup.PUT("/article", middlewares.AuthJWT(), article.UpdateArticle)
 			articleGroup.POST("article/create", middlewares.AuthJWT(), article.CreateArticle)
 		}
+		imc := new(controllers.ImageController)
+		imcGroup := v1.Group("/upload")
+		{
+			imcGroup.POST("", imc.Upload)
+		}
 	}
 }

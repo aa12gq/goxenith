@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package com.image.v1;
+option go_package = "goxenith/proto/app/image/v1;v1";
+
+message Image {
+  // 图片对象id
+  // @gotags: json:"id"
+  string id = 1;
+  // url
+  // @gotags: json:"url"
+  string url = 2;
+  // 原文件名
+  // @gotags: json:"originFileName"
+  string origin_filename = 3;
+}
+
+message ImageRequest {
+  // @gotags: json:"image" valid:'file'
+  bytes image = 1;
+}
+
