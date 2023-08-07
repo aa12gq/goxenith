@@ -26,9 +26,10 @@ func (c *CommunityController) ListCommunity(ctx *gin.Context) {
 	var cs []*pb.Community
 	for _, em := range communitys {
 		cs = append(cs, &pb.Community{
-			Id:   em.ID,
-			Name: em.Name,
-			Logo: em.Logo,
+			Id:        em.ID,
+			Name:      em.Name,
+			Logo:      em.Logo,
+			Introduce: em.Introduce,
 		})
 	}
 	response.JSON(ctx, cs)

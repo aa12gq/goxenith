@@ -15,6 +15,9 @@ message Community {
   // 社区图标
   // @inject_tag: json:"logo"
   string logo = 3;
+  // 社区介绍
+  // @inject_tag: json:"introduce"
+  string introduce = 4;
 }
 
 

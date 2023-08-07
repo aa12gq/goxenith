@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"goxenith/pkg/model"
@@ -20,9 +21,10 @@ func (Community) Mixin() []ent.Mixin {
 // Fields of the Community.
 func (Community) Fields() []ent.Field {
 	return []ent.Field{
-		field.Uint64("id").Comment("社区ID"),
-		field.String("name").Comment("社区名称"),
-		field.String("logo").Comment("社区logo").Optional(),
+		field.Uint64("id").Comment("社区ID").Annotations(entsql.WithComments(true)),
+		field.String("name").Comment("社区名称").Annotations(entsql.WithComments(true)),
+		field.String("logo").Comment("社区logo").Annotations(entsql.WithComments(true)).Optional(),
+		field.String("introduce").Comment("社区介绍").Annotations(entsql.WithComments(true)),
 	}
 }
 
