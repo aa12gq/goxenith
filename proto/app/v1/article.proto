@@ -24,12 +24,6 @@ message Article {
   string author_name = 3;
   // @inject_tag: json:"authorAvatar"
   string author_avatar = 4;
-  // 社区ID
-  // @inject_tag: json:"communityId"
-  uint64 community_id = 5;
-  // 社区名称
-  // @inject_tag: json:"communityName"
-  string community_name = 6;
   // 博文标题
   // @inject_tag: json:"title"
   string title = 7;
@@ -60,9 +54,6 @@ message Article {
 }
 
 message CreateArticleRequest {
-  // 社区ID
-  // @inject_tag: valid:"community_id"
-  uint64 community_id = 1;
   // 博文标题
   // @inject_tag: valid:"title"
   string title = 2;

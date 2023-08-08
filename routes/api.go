@@ -49,21 +49,15 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			categoryGroup.POST("", middlewares.AuthJWT(), cate.CreateCategory)
 			categoryGroup.GET("/tree", cate.GetMaterialCategoryTree)
 		}
-		// 社区
-		communityGroup := v1.Group("/communitys")
-		{
-			community := new(controllers.CommunityController)
-			communityGroup.GET("", community.ListCommunity)
-		}
-		// Go社区博文
-		articleGroup := v1.Group("go")
+		// 博文
+		articleGroup := v1.Group("articles")
 		{
 			article := new(controllers.ArticleController)
-			articleGroup.GET("articles/:page", article.ListArticle)
-			articleGroup.GET("/article/:id", article.GetArticle)
-			articleGroup.DELETE("/article/:id", middlewares.AuthJWT(), article.DeleteArticle)
-			articleGroup.PUT("/article", middlewares.AuthJWT(), article.UpdateArticle)
-			articleGroup.POST("article/create", middlewares.AuthJWT(), article.CreateArticle)
+			articleGroup.GET("", article.ListArticle)
+			articleGroup.GET("/:id", article.GetArticle)
+			articleGroup.DELETE("/:id", middlewares.AuthJWT(), article.DeleteArticle)
+			articleGroup.PUT("/:id", middlewares.AuthJWT(), article.UpdateArticle)
+			articleGroup.POST("", middlewares.AuthJWT(), article.CreateArticle)
 		}
 		imc := new(controllers.ImageController)
 		imcGroup := v1.Group("/upload")

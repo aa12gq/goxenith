@@ -6,11 +6,9 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"goxenith/app/models/ent"
 	entArtic "goxenith/app/models/ent/article"
-	entCommunity "goxenith/app/models/ent/community"
 	"goxenith/app/requests"
 	"goxenith/dao"
 	"goxenith/pkg/auth"
-	"goxenith/pkg/logger"
 	"goxenith/pkg/model"
 	"goxenith/pkg/paginator"
 	"goxenith/pkg/response"
@@ -32,21 +30,9 @@ func (a *ArticleController) CreateArticle(ctx *gin.Context) {
 	if currentUser.ID == 0 {
 		return
 	}
-	exist, err := dao.DB.Community.Query().Where(entCommunity.IDEQ(request.CommunityId), entCommunity.DeleteEQ(model.DeletedNo)).Exist(ctx)
-	if err != nil {
-		logger.LogWarnIf("博文保存出错: %v", err)
-		response.Abort400(ctx, "博文保存出错")
-		return
-	}
 
-	if !exist {
-		logger.LogWarnIf(fmt.Sprintf("未找到ID为 %v 的社区", request.CommunityId), err)
-		response.Abort400(ctx, "博文保存出错")
-	}
-
-	err = dao.DB.Article.Create().
+	err := dao.DB.Article.Create().
 		SetAuthorID(currentUser.ID).
-		SetCommunityID(request.CommunityId).
 		SetTitle(request.Title).
 		SetSummary(request.Summary).
 		SetContent(request.Content).
@@ -60,9 +46,11 @@ func (a *ArticleController) CreateArticle(ctx *gin.Context) {
 }
 
 func (a *ArticleController) ListArticle(ctx *gin.Context) {
-	pageParam, _ := ctx.Params.Get("page")
+	pageParam := ctx.DefaultQuery("page", "1")
 	page, _ := strconv.Atoi(pageParam)
-	offset := int(paginator.GetPageOffset(uint32(page), 20))
+	pageSizeParam := ctx.DefaultQuery("pageSize", "20")
+	pageSize, _ := strconv.Atoi(pageSizeParam)
+	offset := int(paginator.GetPageOffset(uint32(page), uint32(pageSize)))
 
 	tx, err := dao.DB.BeginTx(ctx, nil)
 	if err != nil {
@@ -72,10 +60,8 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 
 	query := tx.Article.Query().
 		Offset(offset).
-		Limit(20).
+		Limit(pageSize).
 		Where(entArtic.DeleteEQ(model.DeletedNo)).
-		Where(entArtic.CommunityIDEQ(1)).
-		WithCommunity().
 		WithAuthor()
 
 	articles, err := query.All(ctx)
@@ -108,7 +94,7 @@ func (a *ArticleController) GetArticle(ctx *gin.Context) {
 	idStr, _ := ctx.Params.Get("id")
 	id, _ := strconv.Atoi(idStr)
 
-	article, err := dao.DB.Article.Query().Where(entArtic.IDEQ(uint64(id)), entArtic.DeleteEQ(model.DeletedNo)).WithAuthor().WithCommunity().First(ctx)
+	article, err := dao.DB.Article.Query().Where(entArtic.IDEQ(uint64(id)), entArtic.DeleteEQ(model.DeletedNo)).WithAuthor().First(ctx)
 	if err != nil {
 		response.Abort404(ctx, fmt.Sprintf("未找到ID为 %v 的博文数据", id))
 		return
@@ -184,19 +170,17 @@ func (a *ArticleController) DeleteArticle(ctx *gin.Context) {
 
 func convertArticle(article *ent.Article) *pb.Article {
 	return &pb.Article{
-		Id:            article.ID,
-		AuthorId:      article.AuthorID,
-		AuthorName:    article.Edges.Author.UserName,
-		AuthorAvatar:  article.Edges.Author.Avatar,
-		CommunityId:   article.CommunityID,
-		CommunityName: article.Edges.Community.Name,
-		Title:         article.Title,
-		Summary:       article.Summary,
-		Content:       article.Content,
-		Links:         int32(article.Likes),
-		Views:         int32(article.Views),
-		Status:        pb.ArticleStatus(pb.ArticleStatus_value[article.Status.String()]),
-		CreatedDate:   timestamppb.New(article.CreatedAt),
-		UpdatedDate:   timestamppb.New(article.UpdatedAt),
+		Id:           article.ID,
+		AuthorId:     article.AuthorID,
+		AuthorName:   article.Edges.Author.UserName,
+		AuthorAvatar: article.Edges.Author.Avatar,
+		Title:        article.Title,
+		Summary:      article.Summary,
+		Content:      article.Content,
+		Links:        int32(article.Likes),
+		Views:        int32(article.Views),
+		Status:       pb.ArticleStatus(pb.ArticleStatus_value[article.Status.String()]),
+		CreatedDate:  timestamppb.New(article.CreatedAt),
+		UpdatedDate:  timestamppb.New(article.UpdatedAt),
 	}
 }

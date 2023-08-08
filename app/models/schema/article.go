@@ -23,7 +23,6 @@ func (Article) Mixin() []ent.Mixin {
 func (Article) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("author_id"),
-		index.Fields("community_id"),
 	}
 }
 
@@ -32,7 +31,6 @@ func (Article) Fields() []ent.Field {
 	return []ent.Field{
 		field.Uint64("id").Comment("博文ID").Annotations(entsql.WithComments(true)),
 		field.Uint64("author_id").Comment("博文作者ID").Annotations(entsql.WithComments(true)),
-		field.Uint64("community_id").Comment("社区ID").Annotations(entsql.WithComments(true)),
 		field.String("title").Comment("博文标题").Annotations(entsql.WithComments(true)),
 		field.String("summary").Comment("博文摘要").Annotations(entsql.WithComments(true)).Optional(),
 		field.Text("content").Comment("博文内容").Annotations(entsql.WithComments(true)),
@@ -45,7 +43,6 @@ func (Article) Fields() []ent.Field {
 // Edges of the Article.
 func (Article) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("community", Community.Type).Ref("articles").Field("community_id").Required().Unique(),
 		edge.From("author", User.Type).Ref("articles").Field("author_id").Required().Unique(),
 	}
 }
