@@ -100,7 +100,13 @@ func (a *ArticleController) GetArticle(ctx *gin.Context) {
 		return
 	}
 
+	// 作者的文章数量
+	agg, _ := dao.DB.Article.Query().
+		Where(entArtic.AuthorIDEQ(article.AuthorID), entArtic.DeleteEQ(model.DeletedNo)).
+		Aggregate(ent.Sum(entArtic.FieldAuthorID)).Int(ctx)
 	reply := &pb.GetArticleReply{Article: convertArticle(article)}
+
+	reply.Article.Author.ArticleTotal = int32(agg)
 
 	response.JSON(ctx, reply)
 }
@@ -170,17 +176,19 @@ func (a *ArticleController) DeleteArticle(ctx *gin.Context) {
 
 func convertArticle(article *ent.Article) *pb.Article {
 	return &pb.Article{
-		Id:           article.ID,
-		AuthorId:     article.AuthorID,
-		AuthorName:   article.Edges.Author.UserName,
-		AuthorAvatar: article.Edges.Author.Avatar,
-		Title:        article.Title,
-		Summary:      article.Summary,
-		Content:      article.Content,
-		Links:        int32(article.Likes),
-		Views:        int32(article.Views),
-		Status:       pb.ArticleStatus(pb.ArticleStatus_value[article.Status.String()]),
-		CreatedDate:  timestamppb.New(article.CreatedAt),
-		UpdatedDate:  timestamppb.New(article.UpdatedAt),
+		Id: article.ID,
+		Author: &pb.Article_Author{
+			Id:     article.AuthorID,
+			Name:   article.Edges.Author.UserName,
+			Avatar: article.Edges.Author.Avatar,
+		},
+		Title:       article.Title,
+		Summary:     article.Summary,
+		Content:     article.Content,
+		Links:       int32(article.Likes),
+		Views:       int32(article.Views),
+		Status:      pb.ArticleStatus(pb.ArticleStatus_value[article.Status.String()]),
+		CreatedDate: timestamppb.New(article.CreatedAt),
+		UpdatedDate: timestamppb.New(article.UpdatedAt),
 	}
 }

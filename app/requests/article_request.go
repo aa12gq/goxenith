@@ -8,10 +8,9 @@ import (
 func ArticleSave(data interface{}, c *gin.Context) map[string][]string {
 
 	rules := govalidator.MapData{
-		"title":        []string{"required", "min_cn:3", "max_cn:40"},
-		"summary":      []string{"required"},
-		"content":      []string{"required", "min_cn:3", "max_cn:50000"},
-		"community_id": []string{"required"},
+		"title":   []string{"required", "min_cn:3", "max_cn:40"},
+		"summary": []string{"required"},
+		"content": []string{"required", "min_cn:3", "max_cn:50000"},
 	}
 	messages := govalidator.MapData{
 		"title": []string{
@@ -25,9 +24,6 @@ func ArticleSave(data interface{}, c *gin.Context) map[string][]string {
 		"content": []string{
 			"required:博文内容为必填项",
 			"min_cn:长度需大于 10",
-		},
-		"community_id": []string{
-			"required:请选择该博文所属社区",
 		},
 	}
 	return validate(data, rules, messages)
