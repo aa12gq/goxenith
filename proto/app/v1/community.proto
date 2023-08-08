@@ -24,5 +24,5 @@ message Community {
 message ListCommunityRequest {}
 
 message ListCommunityReply {
-  Community community = 1;
+  repeated Community communitys = 1;
 }

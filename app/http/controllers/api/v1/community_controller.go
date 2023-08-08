@@ -32,5 +32,5 @@ func (c *CommunityController) ListCommunity(ctx *gin.Context) {
 			Introduce: em.Introduce,
 		})
 	}
-	response.JSON(ctx, cs)
+	response.JSON(ctx, &pb.ListCommunityReply{Communitys: cs})
 }
