@@ -24,7 +24,7 @@ message Article {
     // @inject_tag: json:"avatar"
     string avatar = 3;
     // 作者发布文章数量
-    // @inject_tag: json:"total"
+    // @inject_tag: json:"articleTotal"
     int32 article_total = 4;
   }
   // 博文ID

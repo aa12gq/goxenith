@@ -2,7 +2,40 @@ syntax = "proto3";
 
 package com.auth.v1;
 
+import "google/protobuf/timestamp.proto";
 option go_package = "goxenith/proto/auth/v1;v1";
+
+
+enum Gender {
+  MALE = 0;
+  FEMALE = 1;
+}
+
+message UserInfo {
+  // @inject_tag: json:"id"
+  uint64 id = 1;
+  // @inject_tag: json:"userName"
+  string user_name = 2;
+  // @inject_tag: json:"realName"
+  string real_name = 3;
+  // @inject_tag: json:"phone"
+  string phone = 4;
+  // @inject_tag: json:"city"
+  string city = 5;
+  // @inject_tag: json:"age"
+  int32 age = 6;
+  // @inject_tag: json:"birthday"
+  google.protobuf.Timestamp birthday = 7;
+  // @inject_tag: json:"personalProfile"
+  string personal_profile = 8;
+  // @inject_tag: json:"email"
+  string email = 9;
+  // @inject_tag: json:"avatar"
+  string avatar = 10;
+  // @inject_tag: json:"gender"
+  Gender gender = 11;
+}
+
 
 message SignupPhoneExistRequest {
   // @gotags: valid:"phone"
@@ -113,4 +146,19 @@ message VerifyCodeEmailRequest {
   string captcha_answer = 2;
   // @gotags: valid:"email"
   string email = 3;
+}
+
+message GetUserInfoReply {
+  // @gotags: valid:"userInfo"
+  UserInfo user_info = 1;
+}
+
+message UpdateUserInfoRequest {
+  // @gotags: valid:"userInfo"
+  UserInfo user_info = 1;
+}
+
+message UpdateUserInfoReply {
+  // @gotags: valid:"userInfo"
+  UserInfo user_info = 1;
 }

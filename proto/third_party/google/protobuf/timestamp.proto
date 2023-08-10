@@ -143,5 +143,6 @@ message Timestamp {
   // second values with fractions must still have non-negative nanos values
   // that count forward in time. Must be from 0 to 999,999,999
   // inclusive.
+  // @inject_tag: json:"nanos"
   int32 nanos = 2;
 }

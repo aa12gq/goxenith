@@ -34,12 +34,18 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			// 支持手机号，Email 和 用户名
 			authGroup.POST("/login/using-password", lgc.LoginByPassword)
 			authGroup.POST("/login/refresh-token", lgc.RefreshToken)
-			uc := new(controllers.UsersController)
-
-			// 获取当前用户
-			v1.GET("/user", middlewares.AuthJWT(), uc.CurrentUser)
 
 		}
+		usersGroup := v1.Group("/users")
+		{
+			uc := new(controllers.UsersController)
+			// 获取当前用户
+			usersGroup.GET("", middlewares.AuthJWT(), uc.CurrentUser)
+			// 获取用户信息
+			usersGroup.GET("/user/:id", uc.GetUserInfo)
+			usersGroup.PUT("", middlewares.AuthJWT(), uc.UpdateUserInfo)
+		}
+
 		// 分类
 		categoryGroup := v1.Group("/categories")
 		{
