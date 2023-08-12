@@ -38,7 +38,7 @@ func (c *UsersController) GetUserInfo(ctx *gin.Context) {
 			return
 		}
 	}
-	response.JSON(ctx, convertUserInfo(info))
+	response.JSON(ctx, pb.GetUserInfoReply{UserInfo: convertUserInfo(info)})
 }
 
 func (c *UsersController) UpdateUserInfo(ctx *gin.Context) {

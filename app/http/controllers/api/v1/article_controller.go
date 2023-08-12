@@ -9,6 +9,8 @@ import (
 	"goxenith/app/requests"
 	"goxenith/dao"
 	"goxenith/pkg/auth"
+	"goxenith/pkg/helpers"
+	"goxenith/pkg/logger"
 	"goxenith/pkg/model"
 	"goxenith/pkg/paginator"
 	"goxenith/pkg/response"
@@ -28,21 +30,38 @@ func (a *ArticleController) CreateArticle(ctx *gin.Context) {
 	}
 	currentUser := auth.CurrentUser(ctx)
 	if currentUser.ID == 0 {
+		response.Abort403(ctx)
 		return
 	}
 
+	summary := getSummary(request.Content, 100)
 	err := dao.DB.Article.Create().
 		SetAuthorID(currentUser.ID).
 		SetTitle(request.Title).
-		SetSummary(request.Summary).
+		SetSummary(summary).
 		SetContent(request.Content).
 		SetStatus(entArtic.Status(request.Status.String())).Exec(ctx)
 	if err != nil {
+		logger.LogWarnIf("保存失败", err)
 		response.Abort500(ctx, "保存失败")
 		return
 	}
 
 	response.Success(ctx)
+}
+
+// 确保不会在中间的多字节字符上截断，并移除 Markdown 语法
+func getSummary(content string, length int) string {
+	strippedContent := helpers.RemoveMarkdown(content)
+
+	if len(strippedContent) <= length {
+		return strippedContent
+	}
+	utf8Content := []rune(strippedContent)
+	if len(utf8Content) <= length {
+		return strippedContent
+	}
+	return string(utf8Content[:length])
 }
 
 func (a *ArticleController) ListArticle(ctx *gin.Context) {
@@ -62,6 +81,7 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 		Offset(offset).
 		Limit(pageSize).
 		Where(entArtic.DeleteEQ(model.DeletedNo)).
+		Order(ent.Desc(entArtic.FieldCreatedAt)).
 		WithAuthor()
 
 	articles, err := query.All(ctx)
@@ -133,9 +153,10 @@ func (a *ArticleController) UpdateArticle(ctx *gin.Context) {
 		return
 	}
 
+	summary := getSummary(request.Content, 100)
 	err = article.Update().
 		SetTitle(request.Title).
-		SetSummary(request.Summary).
+		SetSummary(summary).
 		SetContent(request.Content).
 		SetStatus(entArtic.Status(request.Status.String())).Exec(ctx)
 	if err != nil {

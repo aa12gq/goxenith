@@ -42,7 +42,7 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			// 获取当前用户
 			usersGroup.GET("", middlewares.AuthJWT(), uc.CurrentUser)
 			// 获取用户信息
-			usersGroup.GET("/user/:id", uc.GetUserInfo)
+			usersGroup.GET("/:id", uc.GetUserInfo)
 			usersGroup.PUT("", middlewares.AuthJWT(), uc.UpdateUserInfo)
 		}
 
@@ -62,8 +62,8 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			articleGroup.GET("", article.ListArticle)
 			articleGroup.GET("/:id", article.GetArticle)
 			articleGroup.DELETE("/:id", middlewares.AuthJWT(), article.DeleteArticle)
-			articleGroup.PUT("/:id", middlewares.AuthJWT(), article.UpdateArticle)
-			articleGroup.POST("", middlewares.AuthJWT(), article.CreateArticle)
+			articleGroup.PUT("/update", middlewares.AuthJWT(), article.UpdateArticle)
+			articleGroup.POST("/create", middlewares.AuthJWT(), article.CreateArticle)
 		}
 		imc := new(controllers.ImageController)
 		imcGroup := v1.Group("/upload")

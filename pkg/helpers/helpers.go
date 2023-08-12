@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"regexp"
 	"time"
 )
 
@@ -59,4 +60,10 @@ func FirstElement(args []string) string {
 		return args[0]
 	}
 	return ""
+}
+
+// RemoveMarkdown 使用正则表达式去除 Markdown 语法
+func RemoveMarkdown(content string) string {
+	re := regexp.MustCompile(`(\*{1,2}(.*?)\*{1,2})|(_(.*?)_)|(\[(.*?)\]\((.*?)\))|(\#{1,6}\s?)|(\!\[.*?\]\(.*?\))`)
+	return re.ReplaceAllString(content, "$2$4$6$8")
 }

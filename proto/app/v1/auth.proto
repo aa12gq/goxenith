@@ -149,16 +149,16 @@ message VerifyCodeEmailRequest {
 }
 
 message GetUserInfoReply {
-  // @gotags: valid:"userInfo"
+  // @inject_tag: json:"userInfo"
   UserInfo user_info = 1;
 }
 
 message UpdateUserInfoRequest {
-  // @gotags: valid:"userInfo"
+  // @inject_tag: json:"userInfo"
   UserInfo user_info = 1;
 }
 
 message UpdateUserInfoReply {
-  // @gotags: valid:"userInfo"
+  // @inject_tag: json:"userInfo"
   UserInfo user_info = 1;
 }

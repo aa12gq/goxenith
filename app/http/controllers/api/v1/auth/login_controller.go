@@ -59,9 +59,11 @@ func (lc *LoginController) LoginByPassword(c *gin.Context) {
 	if err != nil {
 		if ent.IsNotFound(err) {
 			response.Abort404(c, "账号不存在")
+			return
 		}
 		logger.Warn(fmt.Sprintf("未找到账号为 %v 的用户信息", request.Account))
 		response.Abort500(c, "账号查询出错")
+		return
 	}
 
 	if !password.BcryptPasswordMatch(request.Password, user.Password) {
