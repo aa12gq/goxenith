@@ -1,10 +1,12 @@
 package v1
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"goxenith/app/models/ent"
+	entArtic "goxenith/app/models/ent/article"
 	entUser "goxenith/app/models/ent/user"
 	"goxenith/app/requests"
 	"goxenith/dao"
@@ -73,6 +75,70 @@ func (c *UsersController) UpdateUserInfo(ctx *gin.Context) {
 	}
 
 	response.JSON(ctx, &pb.UpdateUserInfoReply{UserInfo: convertUserInfo(user)})
+}
+
+func (a *UsersController) ListArticlesForUser(ctx *gin.Context) {
+	idStr, ok := ctx.Params.Get("id")
+	if !ok {
+		response.BadRequest(ctx, errors.New("缺少用户id"))
+		return
+	}
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		response.BadRequest(ctx, errors.New("无效的用户id"))
+		return
+	}
+
+	page, err := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	if err != nil {
+		response.BadRequest(ctx, errors.New("无效的页码"))
+		return
+	}
+	pageSize, err := strconv.Atoi(ctx.DefaultQuery("pageSize", "20"))
+	if err != nil {
+		response.BadRequest(ctx, errors.New("无效的页面大小"))
+		return
+	}
+	offset := (page - 1) * pageSize
+
+	query := dao.DB.Article.Query().
+		Offset(offset).
+		Limit(pageSize).
+		Where(entArtic.DeleteEQ(model.DeletedNo), entArtic.AuthorIDEQ(uint64(id))).
+		Order(ent.Desc(entArtic.FieldCreatedAt))
+
+	articles, err := query.All(ctx)
+	if err != nil {
+		response.Abort404(ctx, "未找到博文列表数据")
+		return
+	}
+
+	total, err := query.Count(ctx)
+	if err != nil {
+		response.Abort404(ctx, "未找到博文列表数据总数")
+		return
+	}
+
+	rv := make([]*pb.ListArticlesForUserReply_Article, len(articles))
+	for i, v := range articles {
+		rv[i] = &pb.ListArticlesForUserReply_Article{
+			Id:          v.ID,
+			Title:       v.Title,
+			Summary:     v.Summary,
+			Links:       int32(v.Likes),
+			Views:       int32(v.Views),
+			CreatedDate: timestamppb.New(v.CreatedAt),
+			UpdatedDate: timestamppb.New(v.UpdatedAt),
+		}
+	}
+
+	reply := &pb.ListArticlesForUserReply{
+		Data:  rv,
+		Total: uint32(total),
+		Count: uint32(len(rv)),
+		Page:  uint32(page),
+	}
+	response.JSON(ctx, reply)
 }
 
 func convertUserInfo(user *ent.User) *pb.UserInfo {

@@ -132,7 +132,7 @@ func (a *ArticleController) GetArticle(ctx *gin.Context) {
 }
 
 func (a *ArticleController) UpdateArticle(ctx *gin.Context) {
-	request := pb.UpdateArticleRequest{}.Article
+	request := &pb.UpdateArticleRequest{}
 
 	if ok := requests.Validate(ctx, request, requests.ArticleSave); !ok {
 		return

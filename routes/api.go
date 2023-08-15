@@ -41,6 +41,7 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			uc := new(controllers.UsersController)
 			// 获取当前用户
 			usersGroup.GET("", middlewares.AuthJWT(), uc.CurrentUser)
+			usersGroup.GET("/:id/articles", uc.ListArticlesForUser)
 			// 获取用户信息
 			usersGroup.GET("/:id", uc.GetUserInfo)
 			usersGroup.PUT("", middlewares.AuthJWT(), uc.UpdateUserInfo)
@@ -61,6 +62,7 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			article := new(controllers.ArticleController)
 			articleGroup.GET("", article.ListArticle)
 			articleGroup.GET("/:id", article.GetArticle)
+
 			articleGroup.DELETE("/:id", middlewares.AuthJWT(), article.DeleteArticle)
 			articleGroup.PUT("/update", middlewares.AuthJWT(), article.UpdateArticle)
 			articleGroup.POST("/create", middlewares.AuthJWT(), article.CreateArticle)

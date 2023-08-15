@@ -105,7 +105,69 @@ message GetArticleReply {
 }
 
 message UpdateArticleRequest {
-  Article article = 1;
+  // @inject_tag: json:"id"
+  uint64 id = 1;
+  // 博文标题
+  // @inject_tag: valid:"title"
+  string title = 2;
+  // 博文摘要
+  // @inject_tag: valid:"summary"
+  string summary = 3;
+  // 博文内容
+  // @inject_tag: valid:"content"
+  string content = 4;
+  // 博文状态
+  // @inject_tag: valid:"status"
+  ArticleStatus status = 5;
 }
 
 message UpdateArticleReply {}
+
+
+message Success {
+  bool success = 1;
+  string message = 2;
+}
+
+message ListArticlesForUserRequest {
+  // @inject_tag: json:"userId"
+  uint64 user_id = 1;
+}
+
+message ListArticlesForUserReply {
+  message Article {
+    // 博文ID
+  // @inject_tag: json:"id"
+    uint64 id = 1;
+    // 博文标题
+ // @inject_tag: json:"title"
+    string title = 7;
+    // 博文摘要
+    // @inject_tag: json:"summary"
+    string summary = 8;
+    // 博文点赞数量
+  // @inject_tag: json:"links"
+    int32 links = 10;
+    // 博文浏览量
+    // @inject_tag: json:"views"
+    int32 views = 11;
+    // 创建时间
+  // @inject_tag: json:"createdDate"
+    google.protobuf.Timestamp created_date = 13;
+    // 更新时间
+    // @inject_tag: json:"updatedDate"
+    google.protobuf.Timestamp updated_date = 14;
+  }
+  // 博文
+ // @inject_tag: json:"data"
+  repeated Article data = 1;
+  // 总数量
+  // @inject_tag: json:"total"
+  uint32 total = 2;
+  // 当前返回数量
+  // @inject_tag: json:"count"
+  uint32 count = 3;
+  // 当前页
+  // @inject_tag: json:"page"
+  uint32 page = 4;
+};
