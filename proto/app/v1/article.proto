@@ -132,6 +132,7 @@ message Success {
 message ListArticlesForUserRequest {
   // @inject_tag: json:"userId"
   uint64 user_id = 1;
+  uint32 page = 2;
 }
 
 message ListArticlesForUserReply {

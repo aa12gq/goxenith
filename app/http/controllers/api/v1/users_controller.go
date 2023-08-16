@@ -40,7 +40,15 @@ func (c *UsersController) GetUserInfo(ctx *gin.Context) {
 			return
 		}
 	}
-	response.JSON(ctx, pb.GetUserInfoReply{UserInfo: convertUserInfo(info)})
+
+	// 文章数量
+	agg, _ := dao.DB.Article.Query().
+		Where(entArtic.AuthorIDEQ(uint64(id)), entArtic.DeleteEQ(model.DeletedNo), entArtic.StatusEQ(entArtic.StatusEFFECT)).
+		Aggregate(ent.Sum(entArtic.FieldAuthorID)).Int(ctx)
+
+	userInfo := convertUserInfo(info)
+	userInfo.ArticleTotal = int32(agg)
+	response.JSON(ctx, pb.GetUserInfoReply{UserInfo: userInfo})
 }
 
 func (c *UsersController) UpdateUserInfo(ctx *gin.Context) {
@@ -154,5 +162,6 @@ func convertUserInfo(user *ent.User) *pb.UserInfo {
 		Email:           user.Email,
 		Avatar:          user.Avatar,
 		Gender:          pb.Gender(pb.Gender_value[user.Gender.String()]),
+		CreatedDate:     timestamppb.New(user.CreatedAt),
 	}
 }

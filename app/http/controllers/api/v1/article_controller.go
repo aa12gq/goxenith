@@ -67,31 +67,49 @@ func getSummary(content string, length int) string {
 func (a *ArticleController) ListArticle(ctx *gin.Context) {
 	pageParam := ctx.DefaultQuery("page", "1")
 	page, _ := strconv.Atoi(pageParam)
-	pageSizeParam := ctx.DefaultQuery("pageSize", "20")
+	pageSizeParam := ctx.DefaultQuery("pageSize", "10")
 	pageSize, _ := strconv.Atoi(pageSizeParam)
 	offset := int(paginator.GetPageOffset(uint32(page), uint32(pageSize)))
+	sortType := ctx.DefaultQuery("sortType", "latest")
 
 	tx, err := dao.DB.BeginTx(ctx, nil)
 	if err != nil {
+		logger.LogWarnIf("开启事务出错", err)
 		response.Abort404(ctx, "未找到博文列表数据")
 		return
 	}
 
-	query := tx.Article.Query().
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	countQuery := tx.Article.Query().Where(entArtic.DeleteEQ(model.DeletedNo))
+	total, err := countQuery.Count(ctx)
+	if err != nil {
+		logger.LogWarnIf("查询博文列表数量出错", err)
+		response.Abort404(ctx, "未找到博文列表数据")
+		return
+	}
+
+	articlesQuery := tx.Article.Query().
 		Offset(offset).
 		Limit(pageSize).
 		Where(entArtic.DeleteEQ(model.DeletedNo)).
-		Order(ent.Desc(entArtic.FieldCreatedAt)).
 		WithAuthor()
 
-	articles, err := query.All(ctx)
-	if err != nil {
-		response.Abort404(ctx, "未找到博文列表数据")
-		return
+	if sortType == "latest" {
+		articlesQuery = articlesQuery.Order(ent.Desc(entArtic.FieldCreatedAt))
+	} else {
+		articlesQuery = articlesQuery.Order(ent.Desc(entArtic.FieldLikes))
 	}
 
-	total, err := query.Count(ctx)
+	articles, err := articlesQuery.All(ctx)
 	if err != nil {
+		logger.LogWarnIf("查询博文列表出错", err)
 		response.Abort404(ctx, "未找到博文列表数据")
 		return
 	}

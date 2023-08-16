@@ -34,6 +34,12 @@ message UserInfo {
   string avatar = 10;
   // @inject_tag: json:"gender"
   Gender gender = 11;
+  // 注册时间
+ // @inject_tag: json:"createdDate"
+  google.protobuf.Timestamp created_date = 12;
+  // 发布文章数量
+    // @inject_tag: json:"articleTotal"
+  int32 article_total = 13;
 }
 
 
