@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"entgo.io/ent/dialect/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -71,6 +72,7 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 	pageSize, _ := strconv.Atoi(pageSizeParam)
 	offset := int(paginator.GetPageOffset(uint32(page), uint32(pageSize)))
 	sortType := ctx.DefaultQuery("sortType", "latest")
+	title := ctx.DefaultQuery("title", "")
 
 	tx, err := dao.DB.BeginTx(ctx, nil)
 	if err != nil {
@@ -98,7 +100,9 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 	articlesQuery := tx.Article.Query().
 		Offset(offset).
 		Limit(pageSize).
-		Where(entArtic.DeleteEQ(model.DeletedNo)).
+		Where(entArtic.DeleteEQ(model.DeletedNo)).Where(func(selector *sql.Selector) {
+		selector.Where(sql.Like(selector.C(entArtic.FieldTitle), fmt.Sprintf("%%%v%%", title)))
+	}).
 		WithAuthor()
 
 	if sortType == "latest" {
