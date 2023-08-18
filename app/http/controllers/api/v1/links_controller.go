@@ -4,9 +4,12 @@ import (
 	"github.com/gin-gonic/gin"
 	entLink "goxenith/app/models/ent/link"
 	"goxenith/dao"
+	"goxenith/pkg/cache"
+	"goxenith/pkg/helpers"
 	"goxenith/pkg/model"
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
+	"time"
 )
 
 type LinksController struct {
@@ -14,8 +17,19 @@ type LinksController struct {
 }
 
 func (ctrl *LinksController) Index(ctx *gin.Context) {
+	cacheKey := "links:all"
+	expireTime := 120 * time.Minute
+
+	var cachedLinks []*pb.Link
+	// 从缓存中获取数据
+	cache.GetObject(cacheKey, &cachedLinks)
+	if !helpers.Empty(cachedLinks) {
+		response.JSON(ctx, &pb.ListLinkReply{Links: cachedLinks})
+		return
+	}
+
 	links, err := dao.DB.Link.Query().Where(entLink.DeleteEQ(model.DeletedNo)).All(ctx)
-	if err != nil {
+	if err != nil || helpers.Empty(links) {
 		response.Abort404(ctx)
 		return
 	}
@@ -29,6 +43,9 @@ func (ctrl *LinksController) Index(ctx *gin.Context) {
 			ImgPath: v.ImgPath,
 		})
 	}
+
+	// 设置缓存
+	cache.Set(cacheKey, rv, expireTime)
 
 	response.JSON(ctx, &pb.ListLinkReply{Links: rv})
 }

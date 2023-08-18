@@ -29,6 +29,7 @@ func main() {
 			bootstrap.SetupLogger()
 			bootstrap.SetupRedis()
 			bootstrap.SetupDB()
+			bootstrap.SetupCache()
 		},
 	}
 	var CmdServe = &cobra.Command{
