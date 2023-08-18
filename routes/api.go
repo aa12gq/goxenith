@@ -72,5 +72,10 @@ func RegisterAPIRoutes(r *gin.Engine) {
 		{
 			imcGroup.POST("", imc.Upload)
 		}
+		lsc := new(controllers.LinksController)
+		linksGroup := v1.Group("/links")
+		{
+			linksGroup.GET("", lsc.Index)
+		}
 	}
 }

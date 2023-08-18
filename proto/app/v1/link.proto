@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package com.link.v1;
+import "google/protobuf/timestamp.proto";
+
+option go_package = "goxenith/proto/app/link/v1;v1";
+
+message Link {
+    uint64 id = 1;
+    string name = 2;
+    string url =3;
+    // @inject_tag: json:"imgPath"
+    string img_path = 4;
+}
+
+message ListLinkReply {
+    repeated Link links = 1;
+}
