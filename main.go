@@ -51,6 +51,7 @@ func main() {
 		CmdServe,
 		CmdMigrate,
 		make.CmdMake,
+		cmd.CmdCache,
 	)
 	{
 		CmdMigrate.PersistentFlags().UintP("timeout", "t", 0, "迁移执行超时时间，单位：秒。大于等于0的整数，等于0时，永不超时。")
