@@ -8,13 +8,11 @@ import (
 	"goxenith/app/models/ent"
 	entArtic "goxenith/app/models/ent/article"
 	entUser "goxenith/app/models/ent/user"
-	"goxenith/app/requests"
 	"goxenith/dao"
 	"goxenith/pkg/auth"
 	"goxenith/pkg/logger"
 	"goxenith/pkg/model"
 	"goxenith/pkg/response"
-	"goxenith/pkg/xcopy"
 	pb "goxenith/proto/app/v1"
 	"strconv"
 )
@@ -52,10 +50,12 @@ func (c *UsersController) GetUserInfo(ctx *gin.Context) {
 }
 
 func (c *UsersController) UpdateUserInfo(ctx *gin.Context) {
-	request := pb.UpdateUserInfoRequest{}.UserInfo
-	if ok := requests.Validate(ctx, &request, requests.ArticleSave); !ok {
+	request := pb.UpdateUserInfoRequest{}
+	if err := ctx.ShouldBind(&request); err != nil {
+		response.BadRequest(ctx, err, "请求解析错误，请确认请求格式是否正确。上传文件请使用 multipart 标头，参数请使用 JSON 格式。")
 		return
 	}
+
 	exist, err := dao.DB.User.Query().Where(entUser.UserNameEQ(request.UserName), entUser.DeleteEQ(model.DeletedNo)).Exist(ctx)
 	if err != nil {
 		logger.LogWarnIf("更新出错", err)
@@ -67,15 +67,23 @@ func (c *UsersController) UpdateUserInfo(ctx *gin.Context) {
 		return
 	}
 
-	input := &ent.User{}
-	err = xcopy.Copy(request, input)
+	id, err := strconv.ParseUint(request.Id, 10, 64)
 	if err != nil {
-		logger.LogWarnIf("更新出错", err)
-		response.Abort500(ctx, "更新出错")
+		logger.LogWarnIf("ID 转换出错", err)
+		response.Abort500(ctx, "ID 转换出错")
 		return
 	}
 
-	user, err := dao.DB.User.UpdateOneID(request.Id).SetUser(input).Save(ctx)
+	user, err := dao.DB.User.UpdateOneID(id).
+		SetUserName(request.UserName).
+		SetRealName(request.RealName).
+		SetPhone(request.Phone).
+		SetCity(request.City).
+		SetGender(entUser.Gender(request.Gender.String())).
+		SetAge(uint8(request.Age)).
+		SetPersonalProfile(request.PersonalProfile).
+		SetEmail(request.Email).
+		Save(ctx)
 	if err != nil {
 		logger.LogWarnIf("更新出错", err)
 		response.Abort500(ctx, "更新出错")
