@@ -56,7 +56,7 @@ func (c *UsersController) UpdateUserInfo(ctx *gin.Context) {
 		return
 	}
 
-	exist, err := dao.DB.User.Query().Where(entUser.UserNameEQ(request.UserName), entUser.DeleteEQ(model.DeletedNo)).Exist(ctx)
+	exist, err := dao.DB.User.Query().Where(entUser.UserNameEQ(request.UserName), entUser.IDNEQ(request.Id), entUser.DeleteEQ(model.DeletedNo)).Exist(ctx)
 	if err != nil {
 		logger.LogWarnIf("更新出错", err)
 		response.Abort500(ctx, "更新出错")
@@ -67,14 +67,7 @@ func (c *UsersController) UpdateUserInfo(ctx *gin.Context) {
 		return
 	}
 
-	id, err := strconv.ParseUint(request.Id, 10, 64)
-	if err != nil {
-		logger.LogWarnIf("ID 转换出错", err)
-		response.Abort500(ctx, "ID 转换出错")
-		return
-	}
-
-	user, err := dao.DB.User.UpdateOneID(id).
+	user, err := dao.DB.User.UpdateOneID(request.Id).
 		SetUserName(request.UserName).
 		SetRealName(request.RealName).
 		SetPhone(request.Phone).
