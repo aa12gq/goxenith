@@ -186,3 +186,9 @@ message UpdateUserInfoReply {
   // @inject_tag: json:"userInfo"
   UserInfo user_info = 1;
 }
+
+
+message UpdateUserAvatarRequest {
+  uint64 id = 1;
+  string avatar = 2;
+}

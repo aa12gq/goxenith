@@ -86,6 +86,37 @@ func (c *UsersController) UpdateUserInfo(ctx *gin.Context) {
 	response.JSON(ctx, &pb.UpdateUserInfoReply{UserInfo: convertUserInfo(user)})
 }
 
+func (c *UsersController) UpdateUserAvatar(ctx *gin.Context) {
+	request := &pb.UpdateUserAvatarRequest{}
+	if err := ctx.ShouldBind(request); err != nil {
+		response.BadRequest(ctx, err, "请求解析错误，请确认请求格式是否正确。上传文件请使用 multipart 标头，参数请使用 JSON 格式。")
+		return
+	}
+
+	exist, err := dao.DB.User.Query().Where(entUser.ID(request.Id), entUser.DeleteEQ(model.DeletedNo)).Exist(ctx)
+	if err != nil {
+		logger.LogWarnIf("查询用户出错", err)
+		response.Abort500(ctx, "查询用户出错")
+		return
+	}
+
+	if !exist {
+		response.Abort404(ctx, "用户不存在")
+		return
+	}
+
+	err = dao.DB.User.UpdateOneID(request.Id).
+		SetAvatar(request.Avatar).
+		Exec(ctx)
+	if err != nil {
+		logger.LogWarnIf("更新出错", err)
+		response.Abort500(ctx, "更新出错")
+		return
+	}
+
+	response.Success(ctx)
+}
+
 func (a *UsersController) ListArticlesForUser(ctx *gin.Context) {
 	idStr, ok := ctx.Params.Get("id")
 	if !ok {

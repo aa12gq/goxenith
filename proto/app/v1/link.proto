@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 package com.link.v1;
-import "google/protobuf/timestamp.proto";
 
 option go_package = "goxenith/proto/app/link/v1;v1";
 
