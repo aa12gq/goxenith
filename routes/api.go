@@ -46,6 +46,7 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			usersGroup.GET("/:id", uc.GetUserInfo)
 			usersGroup.PUT("", middlewares.AuthJWT(), uc.UpdateUserInfo)
 			usersGroup.PUT("/avatar", middlewares.AuthJWT(), uc.UpdateUserAvatar)
+			usersGroup.PUT("/password", middlewares.AuthJWT(), uc.UpdatePassword)
 		}
 
 		// 分类

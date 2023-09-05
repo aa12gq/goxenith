@@ -192,3 +192,13 @@ message UpdateUserAvatarRequest {
   uint64 id = 1;
   string avatar = 2;
 }
+
+
+message UpdateUserPasswordRequest {
+  uint64 id = 1;
+  string password = 2;
+  // @inject_tag: json:"newPassword"
+  string new_password = 3;
+  // @inject_tag: json:"newPasswordConfirm"
+  string new_password_confirm = 4;
+}

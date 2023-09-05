@@ -12,6 +12,7 @@ import (
 	"goxenith/pkg/auth"
 	"goxenith/pkg/logger"
 	"goxenith/pkg/model"
+	"goxenith/pkg/password"
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
 	"strconv"
@@ -111,6 +112,56 @@ func (c *UsersController) UpdateUserAvatar(ctx *gin.Context) {
 	if err != nil {
 		logger.LogWarnIf("更新出错", err)
 		response.Abort500(ctx, "更新出错")
+		return
+	}
+
+	response.Success(ctx)
+}
+
+func (c *UsersController) UpdatePassword(ctx *gin.Context) {
+	request := &pb.UpdateUserPasswordRequest{}
+	if err := ctx.ShouldBind(request); err != nil {
+		response.BadRequest(ctx, err, "请求解析错误，请确认请求格式是否正确。上传文件请使用 multipart 标头，参数请使用 JSON 格式。")
+		return
+	}
+
+	if request.Id == 0 {
+		response.Abort400(ctx, "缺少用户ID")
+		return
+	}
+
+	user, err := dao.DB.User.Query().Where(entUser.ID(request.Id), entUser.DeleteEQ(model.DeletedNo)).First(ctx)
+	if err != nil {
+		response.Abort404(ctx, fmt.Sprintf("未找到ID为 %v 的用户信息", request.Id))
+		return
+	}
+
+	if user.Password == "" {
+		response.Abort400(ctx, "用户密码为空")
+		return
+	}
+
+	if request.Password == "" {
+		response.Abort400(ctx, "旧密码不能为空")
+		return
+	}
+
+	if !password.BcryptPasswordMatch(request.Password, user.Password) {
+		response.Abort400(ctx, "旧密码不正确")
+		return
+	}
+
+	if request.NewPassword == "" {
+		response.Abort400(ctx, "新密码不能为空")
+		return
+	}
+
+	err = dao.DB.User.UpdateOne(user).
+		SetPassword(password.BcryptPassword(request.NewPassword)).
+		Exec(ctx)
+	if err != nil {
+		logger.LogWarnIf("更新密码出错", err)
+		response.Abort500(ctx, "更新密码出错")
 		return
 	}
 
