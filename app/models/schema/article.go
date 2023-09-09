@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"goxenith/pkg/model"
+	"time"
 )
 
 type Article struct {
@@ -36,6 +37,7 @@ func (Article) Fields() []ent.Field {
 		field.Text("content").Comment("博文内容").Annotations(entsql.WithComments(true)),
 		field.Enum("status").Values("DRAFT", "EFFECT").Default("DRAFT").Comment("博文状态, DRAFT:草稿,EFFECT:生效").Annotations(entsql.WithComments(true)),
 		field.Uint64("view_count").Default(0).Comment("浏览量").Annotations(entsql.WithComments(true)),
+		field.Time("last_updated_at").Comment("最后更新时间").Annotations(entsql.WithComments(true)).Default(time.Now),
 	}
 }
 

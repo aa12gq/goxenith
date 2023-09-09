@@ -44,7 +44,8 @@ func (a *ArticleController) CreateArticle(ctx *gin.Context) {
 		SetTitle(request.Title).
 		SetSummary(summary).
 		SetContent(request.Content).
-		SetStatus(entArtic.Status(request.Status.String())).Exec(ctx)
+		SetStatus(entArtic.Status(request.Status.String())).
+		SetLastUpdatedAt(time.Now()).Exec(ctx)
 	if err != nil {
 		logger.LogWarnIf("保存失败", err)
 		response.Abort500(ctx, "保存失败")
@@ -86,9 +87,15 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			err := tx.Rollback()
+			if err != nil {
+				return
+			}
 		} else {
-			tx.Commit()
+			err := tx.Commit()
+			if err != nil {
+				return
+			}
 		}
 	}()
 
@@ -186,7 +193,8 @@ func (a *ArticleController) UpdateArticle(ctx *gin.Context) {
 		SetTitle(request.Title).
 		SetSummary(summary).
 		SetContent(request.Content).
-		SetStatus(entArtic.Status(request.Status.String())).Exec(ctx)
+		SetStatus(entArtic.Status(request.Status.String())).
+		SetLastUpdatedAt(time.Now()).Exec(ctx)
 	if err != nil {
 		response.Abort500(ctx, "保存失败")
 		return
@@ -349,13 +357,13 @@ func (a *ArticleController) ViewArticle(ctx *gin.Context) {
 	}
 
 	article, err := dao.DB.Article.Query().Where(entArtic.IDEQ(uint64(request.Id)),
-		entArtic.DeleteEQ(model.DeletedNo)).WithAuthor().First(ctx)
+		entArtic.DeleteEQ(model.DeletedNo)).First(ctx)
 	if err != nil {
 		response.Abort404(ctx, fmt.Sprintf("未找到ID为 %v 的博文数据", request.Id))
 		return
 	}
 
-	clientIP := ctx.ClientIP() // 获取客户端IP
+	clientIP := ctx.ClientIP()
 	cookieName := "user_track"
 	cookieValue, err := ctx.Cookie(cookieName)
 	if err != nil || cookieValue == "" {
@@ -366,7 +374,6 @@ func (a *ArticleController) ViewArticle(ctx *gin.Context) {
 
 	viewKey := fmt.Sprintf("article:%d:view:ip:%s:cookie:%s", request.Id, clientIP, cookieValue)
 	viewTTL := time.Minute * 30
-
 	// 如果此cookie/IP组合在30分钟内没有访问过该文章，则增加浏览量
 	if !cache.Has(viewKey) {
 		err = article.Update().AddViewCount(1).Exec(ctx)
@@ -378,10 +385,11 @@ func (a *ArticleController) ViewArticle(ctx *gin.Context) {
 		cache.Set(viewKey, 1, viewTTL) // 记录该IP和cookie已经访问了此文章
 	}
 
-	likeCount, _ := dao.DB.LikeRecord.Query().Where(likerecord.ArticleIDEQ(article.ID)).Count(ctx)
-	reply := &pb.GetArticleReply{Article: convertArticle(article, likeCount)}
+	article, _ = dao.DB.Article.Query().Where(entArtic.ID(article.ID)).Select(entArtic.FieldViewCount).Only(ctx)
 
-	response.JSON(ctx, reply)
+	response.JSON(ctx, gin.H{
+		"likes": article.ViewCount,
+	})
 }
 
 func convertArticle(article *ent.Article, likes int) *pb.Article {
@@ -399,6 +407,6 @@ func convertArticle(article *ent.Article, likes int) *pb.Article {
 		Views:       int32(article.ViewCount),
 		Status:      pb.ArticleStatus(pb.ArticleStatus_value[article.Status.String()]),
 		CreatedDate: timestamppb.New(article.CreatedAt),
-		UpdatedDate: timestamppb.New(article.UpdatedAt),
+		UpdatedDate: timestamppb.New(article.LastUpdatedAt),
 	}
 }
