@@ -355,11 +355,19 @@ func (a *ArticleController) ViewArticle(ctx *gin.Context) {
 		return
 	}
 
-	clientIP := ctx.ClientIP()
-	viewKey := fmt.Sprintf("article:%d:view:ip:%s", request.Id, clientIP)
+	clientIP := ctx.ClientIP() // 获取客户端IP
+	cookieName := "user_track"
+	cookieValue, err := ctx.Cookie(cookieName)
+	if err != nil || cookieValue == "" {
+		// 如果cookie不存在，为用户创建一个新的
+		cookieValue = fmt.Sprintf("%v-%s", time.Now().UnixNano(), clientIP)
+		ctx.SetCookie(cookieName, cookieValue, 3600*24*365, "/", "", false, true) // 设置一年有效期
+	}
+
+	viewKey := fmt.Sprintf("article:%d:view:ip:%s:cookie:%s", request.Id, clientIP, cookieValue)
 	viewTTL := time.Minute * 30
 
-	// 如果此IP在30分钟内没有访问过该文章，则增加浏览量
+	// 如果此cookie/IP组合在30分钟内没有访问过该文章，则增加浏览量
 	if !cache.Has(viewKey) {
 		err = article.Update().AddViewCount(1).Exec(ctx)
 		if err != nil {
@@ -367,7 +375,7 @@ func (a *ArticleController) ViewArticle(ctx *gin.Context) {
 			response.Abort500(ctx, "增加浏览量失败")
 			return
 		}
-		cache.Set(viewKey, 1, viewTTL) // 记录该IP已经访问了此文章
+		cache.Set(viewKey, 1, viewTTL) // 记录该IP和cookie已经访问了此文章
 	}
 
 	likeCount, _ := dao.DB.LikeRecord.Query().Where(likerecord.ArticleIDEQ(article.ID)).Count(ctx)
