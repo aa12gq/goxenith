@@ -151,6 +151,7 @@ func (a *ArticleController) GetArticle(ctx *gin.Context) {
 		Where(entArtic.AuthorIDEQ(article.AuthorID), entArtic.DeleteEQ(model.DeletedNo)).
 		Aggregate(ent.Sum(entArtic.FieldAuthorID)).Int(ctx)
 	likeCount, _ := dao.DB.LikeRecord.Query().Where(likerecord.ArticleIDEQ(article.ID)).Count(ctx)
+
 	reply := &pb.GetArticleReply{Article: convertArticle(article, likeCount)}
 
 	reply.Article.Author.ArticleTotal = int32(agg)
@@ -340,6 +341,41 @@ func (a *ArticleController) CheckLikeStatus(ctx *gin.Context) {
 	})
 }
 
+func (a *ArticleController) ViewArticle(ctx *gin.Context) {
+	request := &pb.UpdateArticleViewsRequest{}
+	if err := ctx.ShouldBind(request); err != nil {
+		response.BadRequest(ctx, err, "请求解析错误，请确认请求格式是否正确。上传文件请使用 multipart 标头，参数请使用 JSON 格式。")
+		return
+	}
+
+	article, err := dao.DB.Article.Query().Where(entArtic.IDEQ(uint64(request.Id)),
+		entArtic.DeleteEQ(model.DeletedNo)).WithAuthor().First(ctx)
+	if err != nil {
+		response.Abort404(ctx, fmt.Sprintf("未找到ID为 %v 的博文数据", request.Id))
+		return
+	}
+
+	clientIP := ctx.ClientIP()
+	viewKey := fmt.Sprintf("article:%d:view:ip:%s", request.Id, clientIP)
+	viewTTL := time.Minute * 30
+
+	// 如果此IP在30分钟内没有访问过该文章，则增加浏览量
+	if !cache.Has(viewKey) {
+		err = article.Update().AddViewCount(1).Exec(ctx)
+		if err != nil {
+			logger.LogWarnIf("增加浏览量失败", err)
+			response.Abort500(ctx, "增加浏览量失败")
+			return
+		}
+		cache.Set(viewKey, 1, viewTTL) // 记录该IP已经访问了此文章
+	}
+
+	likeCount, _ := dao.DB.LikeRecord.Query().Where(likerecord.ArticleIDEQ(article.ID)).Count(ctx)
+	reply := &pb.GetArticleReply{Article: convertArticle(article, likeCount)}
+
+	response.JSON(ctx, reply)
+}
+
 func convertArticle(article *ent.Article, likes int) *pb.Article {
 	return &pb.Article{
 		Id: article.ID,
@@ -352,7 +388,7 @@ func convertArticle(article *ent.Article, likes int) *pb.Article {
 		Summary:     article.Summary,
 		Content:     article.Content,
 		Likes:       int32(likes),
-		Views:       0,
+		Views:       int32(article.ViewCount),
 		Status:      pb.ArticleStatus(pb.ArticleStatus_value[article.Status.String()]),
 		CreatedDate: timestamppb.New(article.CreatedAt),
 		UpdatedDate: timestamppb.New(article.UpdatedAt),

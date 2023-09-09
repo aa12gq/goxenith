@@ -68,7 +68,7 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			articleGroup.DELETE("/:id", middlewares.AuthJWT(), article.DeleteArticle)
 			articleGroup.PUT("/update", middlewares.AuthJWT(), article.UpdateArticle)
 			articleGroup.POST("/create", middlewares.AuthJWT(), article.CreateArticle)
-			//articleGroup.POST("/view", article.UpdateArticleViews)
+			articleGroup.POST("/view", article.ViewArticle)
 			articleGroup.POST("/like", middlewares.AuthJWT(), article.LikeArticle)
 			articleGroup.GET("/:id/check-like-status", middlewares.AuthJWT(), article.CheckLikeStatus)
 		}

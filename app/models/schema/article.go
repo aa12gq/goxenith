@@ -35,6 +35,7 @@ func (Article) Fields() []ent.Field {
 		field.String("summary").Comment("博文摘要").Annotations(entsql.WithComments(true)).Optional(),
 		field.Text("content").Comment("博文内容").Annotations(entsql.WithComments(true)),
 		field.Enum("status").Values("DRAFT", "EFFECT").Default("DRAFT").Comment("博文状态, DRAFT:草稿,EFFECT:生效").Annotations(entsql.WithComments(true)),
+		field.Uint64("view_count").Default(0).Comment("浏览量").Annotations(entsql.WithComments(true)),
 	}
 }
 

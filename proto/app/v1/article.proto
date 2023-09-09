@@ -177,3 +177,7 @@ message ListArticlesForUserReply {
 message LikeArticleRequest {
   uint64 id = 1;
 }
+
+message UpdateArticleViewsRequest {
+  uint64 id = 1;
+}
