@@ -213,11 +213,11 @@ func (a *UsersController) ListArticlesForUser(ctx *gin.Context) {
 	rv := make([]*pb.ListArticlesForUserReply_Article, len(articles))
 	for i, v := range articles {
 		rv[i] = &pb.ListArticlesForUserReply_Article{
-			Id:          v.ID,
-			Title:       v.Title,
-			Summary:     v.Summary,
-			Links:       int32(v.Likes),
-			Views:       int32(v.Views),
+			Id:      v.ID,
+			Title:   v.Title,
+			Summary: v.Summary,
+			//Links:       int32(v.Likes),
+			//Views:       int32(v.Views),
 			CreatedDate: timestamppb.New(v.CreatedAt),
 			UpdatedDate: timestamppb.New(v.UpdatedAt),
 		}

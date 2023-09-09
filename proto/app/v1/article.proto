@@ -42,8 +42,8 @@ message Article {
   // @inject_tag: json:"content"
   string content = 9;
   // 博文点赞数量
-  // @inject_tag: json:"links"
-  int32 links = 10;
+  // @inject_tag: json:"likes"
+  int32 likes = 10;
   // 博文浏览量
   // @inject_tag: json:"views"
   int32 views = 11;
@@ -147,8 +147,8 @@ message ListArticlesForUserReply {
     // @inject_tag: json:"summary"
     string summary = 8;
     // 博文点赞数量
-  // @inject_tag: json:"links"
-    int32 links = 10;
+  // @inject_tag: json:"likes"
+    int32 likes = 10;
     // 博文浏览量
     // @inject_tag: json:"views"
     int32 views = 11;
@@ -172,3 +172,8 @@ message ListArticlesForUserReply {
   // @inject_tag: json:"page"
   uint32 page = 4;
 };
+
+
+message LikeArticleRequest {
+  uint64 id = 1;
+}

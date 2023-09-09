@@ -7,9 +7,11 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"goxenith/app/models/ent"
 	entArtic "goxenith/app/models/ent/article"
+	"goxenith/app/models/ent/likerecord"
 	"goxenith/app/requests"
 	"goxenith/dao"
 	"goxenith/pkg/auth"
+	"goxenith/pkg/cache"
 	"goxenith/pkg/helpers"
 	"goxenith/pkg/logger"
 	"goxenith/pkg/model"
@@ -17,6 +19,7 @@ import (
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
 	"strconv"
+	"time"
 )
 
 type ArticleController struct {
@@ -108,7 +111,7 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 	if sortType == "latest" {
 		articlesQuery = articlesQuery.Order(ent.Desc(entArtic.FieldCreatedAt))
 	} else {
-		articlesQuery = articlesQuery.Order(ent.Desc(entArtic.FieldLikes))
+		//articlesQuery = articlesQuery.Order(ent.Desc(entArtic.FieldLikes))
 	}
 
 	articles, err := articlesQuery.All(ctx)
@@ -120,7 +123,8 @@ func (a *ArticleController) ListArticle(ctx *gin.Context) {
 
 	rv := make([]*pb.Article, 0, len(articles))
 	for _, v := range articles {
-		rv = append(rv, convertArticle(v))
+		likeCount, _ := dao.DB.LikeRecord.Query().Where(likerecord.ArticleIDEQ(v.ID)).Count(ctx)
+		rv = append(rv, convertArticle(v, likeCount))
 	}
 
 	reply := &pb.ListArticleReply{
@@ -146,7 +150,8 @@ func (a *ArticleController) GetArticle(ctx *gin.Context) {
 	agg, _ := dao.DB.Article.Query().
 		Where(entArtic.AuthorIDEQ(article.AuthorID), entArtic.DeleteEQ(model.DeletedNo)).
 		Aggregate(ent.Sum(entArtic.FieldAuthorID)).Int(ctx)
-	reply := &pb.GetArticleReply{Article: convertArticle(article)}
+	likeCount, _ := dao.DB.LikeRecord.Query().Where(likerecord.ArticleIDEQ(article.ID)).Count(ctx)
+	reply := &pb.GetArticleReply{Article: convertArticle(article, likeCount)}
 
 	reply.Article.Author.ArticleTotal = int32(agg)
 
@@ -217,7 +222,125 @@ func (a *ArticleController) DeleteArticle(ctx *gin.Context) {
 	response.Success(ctx)
 }
 
-func convertArticle(article *ent.Article) *pb.Article {
+func (a *ArticleController) LikeArticle(ctx *gin.Context) {
+	request := &pb.LikeArticleRequest{}
+	if err := ctx.ShouldBind(request); err != nil {
+		response.BadRequest(ctx, err, "请求解析错误，请确认请求格式是否正确。上传文件请使用 multipart 标头，参数请使用 JSON 格式。")
+		return
+	}
+
+	currentUser := auth.CurrentUser(ctx)
+	if currentUser.ID == 0 {
+		return
+	}
+
+	likeKey := fmt.Sprintf("article:%d:like:user:%d", request.Id, currentUser)
+	ttl := time.Hour * 24
+
+	if cache.Has(likeKey) {
+		response.JSON(ctx, gin.H{
+			"message": "您已经点过赞了",
+		})
+		return
+	}
+
+	cache.Set(likeKey, 1, ttl)
+
+	articleExist, err := dao.DB.Article.Query().Where(entArtic.IDEQ(request.Id)).Exist(ctx)
+	if err != nil {
+		logger.LogWarnIf("查询文章出错", err)
+		response.Abort500(ctx, "文章点赞失败")
+		return
+	}
+
+	if !articleExist {
+		response.Abort404(ctx, "文章不存在")
+		return
+	}
+
+	// 查询是否有点赞记录
+	record, err := dao.DB.LikeRecord.Query().
+		Where(likerecord.ArticleID(uint64(request.Id)), likerecord.UserID(currentUser.ID)).
+		Only(ctx)
+
+	if err != nil && !ent.IsNotFound(err) {
+		logger.LogWarnIf("查询点赞记录出错", err)
+		response.Abort500(ctx, "文章点赞失败")
+		return
+	}
+
+	if record != nil {
+		if record.IsActive {
+			// 已经点过赞，将其取消
+			_, err = dao.DB.LikeRecord.UpdateOneID(record.ID).SetIsActive(false).Save(ctx)
+			if err == nil {
+				cache.Forget(likeKey)
+				response.JSON(ctx, gin.H{
+					"message": "取消点赞成功",
+				})
+				return
+			}
+		} else {
+			// 之前取消过点赞，现在重新点赞
+			_, err = dao.DB.LikeRecord.UpdateOneID(record.ID).SetIsActive(true).Save(ctx)
+		}
+	} else {
+		// 之前从未点赞，创建新记录
+		_, err = dao.DB.LikeRecord.Create().
+			SetArticleID(uint64(request.Id)).
+			SetUserID(currentUser.ID).
+			SetIsActive(true).
+			Save(ctx)
+	}
+
+	if err != nil {
+		logger.LogWarnIf("保存点赞记录失败", err)
+		response.Abort500(ctx, "文章点赞失败")
+		return
+	}
+
+	response.JSON(ctx, gin.H{
+		"message": "点赞成功",
+	})
+}
+
+func (a *ArticleController) CheckLikeStatus(ctx *gin.Context) {
+	currentUser := auth.CurrentUser(ctx)
+	if currentUser.ID == 0 {
+		response.Abort403(ctx)
+		return
+	}
+
+	articleIDStr, _ := ctx.Params.Get("id")
+	articleID, _ := strconv.Atoi(articleIDStr)
+	if articleID == 0 {
+		response.Abort400(ctx, "无效的文章ID")
+		return
+	}
+
+	// 检查点赞记录
+	likeRecord, err := dao.DB.LikeRecord.Query().
+		Where(likerecord.ArticleID(uint64(articleID)), likerecord.UserID(currentUser.ID)).
+		Only(ctx)
+
+	if err != nil {
+		if ent.IsNotFound(err) {
+			response.JSON(ctx, gin.H{
+				"liked": false,
+			})
+			return
+		}
+		logger.LogWarnIf("查询点赞记录出错", err)
+		response.Abort500(ctx, "检查点赞状态失败")
+		return
+	}
+
+	response.JSON(ctx, gin.H{
+		"liked": likeRecord.IsActive,
+	})
+}
+
+func convertArticle(article *ent.Article, likes int) *pb.Article {
 	return &pb.Article{
 		Id: article.ID,
 		Author: &pb.Article_Author{
@@ -228,8 +351,8 @@ func convertArticle(article *ent.Article) *pb.Article {
 		Title:       article.Title,
 		Summary:     article.Summary,
 		Content:     article.Content,
-		Links:       int32(article.Likes),
-		Views:       int32(article.Views),
+		Likes:       int32(likes),
+		Views:       0,
 		Status:      pb.ArticleStatus(pb.ArticleStatus_value[article.Status.String()]),
 		CreatedDate: timestamppb.New(article.CreatedAt),
 		UpdatedDate: timestamppb.New(article.UpdatedAt),
