@@ -71,6 +71,8 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			articleGroup.POST("/view", article.ViewArticle)
 			articleGroup.POST("/like", middlewares.AuthJWT(), article.LikeArticle)
 			articleGroup.GET("/:id/check-like-status", middlewares.AuthJWT(), article.CheckLikeStatus)
+			articleGroup.POST("/:id/collect", middlewares.AuthJWT(), article.ToggleCollectArticle)
+			articleGroup.GET("/collected", middlewares.AuthJWT(), article.GetCollectedArticles)
 		}
 		imc := new(controllers.ImageController)
 		imcGroup := v1.Group("/upload")

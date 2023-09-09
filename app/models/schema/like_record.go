@@ -42,7 +42,8 @@ func (LikeRecord) Fields() []ent.Field {
 		field.Uint64("id").Comment("点赞记录表ID").Annotations(entsql.WithComments(true)),
 		field.Uint64("user_id").Comment("点赞用户的ID").Annotations(entsql.WithComments(true)),
 		field.Uint64("article_id").Comment("被点赞的文章ID").Annotations(entsql.WithComments(true)),
-		field.Bool("is_active").Comment("是否有效的点赞，默认为true；如果用户取消点赞，则为false").Annotations(entsql.WithComments(true)),
+		field.Bool("is_active").Comment("是否有效的点赞，true为已点赞；如果用户取消点赞，则为false").Default(false).Annotations(entsql.WithComments(true)),
+		field.Bool("is_collect").Comment("是否收藏，true为已收藏 false为取消收藏").Default(false).Annotations(entsql.WithComments(true)),
 	}
 }
 

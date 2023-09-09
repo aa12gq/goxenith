@@ -392,6 +392,86 @@ func (a *ArticleController) ViewArticle(ctx *gin.Context) {
 	})
 }
 
+func (a *ArticleController) ToggleCollectArticle(ctx *gin.Context) {
+	currentUser := auth.CurrentUser(ctx)
+	if currentUser.ID == 0 {
+		response.Abort403(ctx)
+		return
+	}
+
+	articleIDStr, _ := ctx.Params.Get("id")
+	articleID, _ := strconv.Atoi(articleIDStr)
+	if articleID == 0 {
+		response.Abort400(ctx, "无效的文章ID")
+		return
+	}
+
+	record, err := dao.DB.LikeRecord.Query().
+		Where(likerecord.ArticleID(uint64(articleID)), likerecord.UserID(currentUser.ID)).
+		Only(ctx)
+
+	var isNowCollected bool
+	if err == nil && record != nil {
+		// 反转收藏状态
+		_, err = dao.DB.LikeRecord.UpdateOneID(record.ID).SetIsCollect(!record.IsCollect).Save(ctx)
+		isNowCollected = !record.IsCollect // 使用反转后的值
+	} else {
+		_, err = dao.DB.LikeRecord.Create().
+			SetArticleID(uint64(articleID)).
+			SetUserID(currentUser.ID).
+			SetIsCollect(true).
+			Save(ctx)
+		isNowCollected = true
+	}
+
+	if err != nil {
+		logger.LogWarnIf("保存收藏记录失败", err)
+		response.Abort500(ctx, "操作失败")
+		return
+	}
+
+	// 根据当前的收藏状态返回相应的消息
+	if isNowCollected {
+		response.JSON(ctx, gin.H{
+			"message": "收藏成功",
+		})
+	} else {
+		response.JSON(ctx, gin.H{
+			"message": "取消收藏成功",
+		})
+	}
+}
+
+func (a *ArticleController) GetCollectedArticles(ctx *gin.Context) {
+	currentUser := auth.CurrentUser(ctx)
+	if currentUser.ID == 0 {
+		response.Abort403(ctx)
+		return
+	}
+
+	articles, err := dao.DB.LikeRecord.Query().
+		Where(likerecord.UserID(currentUser.ID), likerecord.IsCollect(true)).WithArticle(func(query *ent.ArticleQuery) {
+		query.WithAuthor()
+	}).
+		All(ctx)
+
+	if err != nil {
+		logger.LogWarnIf("获取收藏文章失败", err)
+		response.Abort500(ctx, "获取收藏文章失败")
+		return
+	}
+
+	responseArticles := make([]*pb.Article, 0)
+	for _, article := range articles {
+		likeCount, _ := dao.DB.LikeRecord.Query().Where(likerecord.ArticleIDEQ(article.ID)).Count(ctx)
+		responseArticles = append(responseArticles, convertArticle(article.Edges.Article, int(likeCount)))
+	}
+
+	response.JSON(ctx, gin.H{
+		"articles": responseArticles,
+	})
+}
+
 func convertArticle(article *ent.Article, likes int) *pb.Article {
 	return &pb.Article{
 		Id: article.ID,

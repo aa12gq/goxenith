@@ -181,3 +181,7 @@ message LikeArticleRequest {
 message UpdateArticleViewsRequest {
   uint64 id = 1;
 }
+
+message UpdateArticleViewsReply {
+  int32 views = 1;
+}
