@@ -7,6 +7,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"goxenith/app/models/ent"
 	entArtic "goxenith/app/models/ent/article"
+	"goxenith/app/models/ent/likerecord"
 	entUser "goxenith/app/models/ent/user"
 	"goxenith/dao"
 	"goxenith/pkg/auth"
@@ -212,12 +213,13 @@ func (a *UsersController) ListArticlesForUser(ctx *gin.Context) {
 
 	rv := make([]*pb.ListArticlesForUserReply_Article, len(articles))
 	for i, v := range articles {
+		likeCount, _ := dao.DB.LikeRecord.Query().Where(likerecord.ArticleIDEQ(v.ID)).Count(ctx)
 		rv[i] = &pb.ListArticlesForUserReply_Article{
-			Id:      v.ID,
-			Title:   v.Title,
-			Summary: v.Summary,
-			//Links:       int32(v.Likes),
-			//Views:       int32(v.Views),
+			Id:          v.ID,
+			Title:       v.Title,
+			Summary:     v.Summary,
+			Likes:       int32(likeCount),
+			Views:       int32(v.ViewCount),
 			CreatedDate: timestamppb.New(v.CreatedAt),
 			UpdatedDate: timestamppb.New(v.UpdatedAt),
 		}

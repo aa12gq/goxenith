@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package com.article.v1;
+import "google/protobuf/timestamp.proto";
+
+option go_package = "goxenith/proto/app/article/v1;v1";
+
+message AddCommentRequest {
+    uint64 article_id = 1;
+    string content = 2;
+    uint64 parent_id = 3;
+}
+
+message Comment {
+    uint64 id = 1;
+    Author author = 2;
+    string content = 3;
+    uint64 parent_id = 4;
+    google.protobuf.Timestamp created_date = 5;
+    repeated Comment child_comments = 6; // 用于嵌套子评论
+}
+
+message Author {
+    uint64 id = 1;
+    string name = 2;
+    string avatar = 3;
+}
+
+message TopLevelCommentsResponse {
+    repeated Comment top_level_comments = 1;
+}
+
+message ChildCommentsResponse {
+    repeated Comment child_comments = 1;
+}
+
+message FullCommentTreeResponse {
+    repeated Comment comments = 1;
+}

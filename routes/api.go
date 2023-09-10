@@ -74,6 +74,15 @@ func RegisterAPIRoutes(r *gin.Engine) {
 			articleGroup.POST("/:id/collect", middlewares.AuthJWT(), article.ToggleCollectArticle)
 			articleGroup.GET("/collected", middlewares.AuthJWT(), article.GetCollectedArticles)
 		}
+		commentGroup := v1.Group("comments")
+		{
+			cmt := new(controllers.CommentController)
+			commentGroup.POST("/add", middlewares.AuthJWT(), cmt.AddComment)
+			commentGroup.DELETE("/:id", middlewares.AuthJWT(), cmt.DeleteComment)
+			commentGroup.GET("/article/:articleId", cmt.GetComments)
+			commentGroup.GET("/child/:parentId", cmt.GetChildComments)
+			commentGroup.GET("/tree/:articleId", cmt.GetFullCommentTree)
+		}
 		imc := new(controllers.ImageController)
 		imcGroup := v1.Group("/upload")
 		{
