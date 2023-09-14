@@ -3,6 +3,7 @@ package serve
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
+	v1 "goxenith/app/http/controllers/api/v1"
 	"goxenith/bootstrap"
 	"goxenith/pkg/config"
 	"goxenith/pkg/console"
@@ -14,6 +15,7 @@ func RunWeb(cmd *cobra.Command, args []string) error {
 	router := gin.New()
 	bootstrap.SetupRoute(router)
 	bootstrap.SetupOss()
+	go v1.SyncArticleViewsFromRedis()
 
 	err := router.Run(":" + config.Get("app.port"))
 	if err != nil {

@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"entgo.io/ent/dialect/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -19,8 +20,12 @@ import (
 	"goxenith/pkg/response"
 	pb "goxenith/proto/app/v1"
 	"strconv"
+	"strings"
 	"time"
 )
+
+const maxRetries = 3
+const retryDelay = 5 * time.Second
 
 type ArticleController struct {
 	BaseAPIController
@@ -349,6 +354,85 @@ func (a *ArticleController) CheckLikeStatus(ctx *gin.Context) {
 	})
 }
 
+// SyncArticleViewsFromRedis 定时从Redis更新数据库
+func SyncArticleViewsFromRedis() {
+	ticker := time.NewTicker(30 * time.Minute)
+
+	for _ = range ticker.C {
+		for i := 0; i < maxRetries; i++ {
+			articleIDs, views, _ := getAllArticleViewsFromRedis()
+			if len(articleIDs) == 0 && len(views) == 0 {
+				break
+			}
+
+			err := updateArticleViewsToDB(articleIDs, views)
+			if err == nil {
+				break
+			}
+
+			if i < maxRetries-1 {
+				logger.LogWarnIf("同步失败，准备重试", err)
+				time.Sleep(retryDelay)
+			} else {
+				logger.LogWarnIf("达到最大重试次数，同步失败", err)
+			}
+		}
+	}
+}
+
+func getAllArticleViewsFromRedis() ([]int, []int, error) {
+	var articleIDs []int
+	var views []int
+
+	keys := cache.GetStringSlice("article:*:view")
+	for _, key := range keys {
+		idStr := strings.Split(key, ":")[1]
+		articleID, err := strconv.Atoi(idStr)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		viewCount := cache.GetInt(key)
+		articleIDs = append(articleIDs, articleID)
+		views = append(views, viewCount)
+	}
+
+	return articleIDs, views, nil
+}
+
+func updateArticleViewsToDB(articleIDs []int, views []int) error {
+	tx, err := dao.DB.Tx(context.Background())
+	if err != nil {
+		logger.LogWarnIf("开始事务失败", err)
+		return err
+	}
+
+	for i, id := range articleIDs {
+		err := tx.Article.UpdateOneID(uint64(id)).AddViewCount(int64(views[i])).Exec(context.Background())
+		if err != nil {
+			logger.LogWarnIf(fmt.Sprintf("更新文章ID %d 的浏览量失败", id), err)
+			_ = tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		logger.LogWarnIf("提交事务失败", err)
+		return err
+	}
+
+	resetRedisCounters(articleIDs)
+	return nil
+}
+
+func resetRedisCounters(articleIDs []int) {
+	// TODO: 重置Redis中的文章浏览量计数器
+	for _, id := range articleIDs {
+		key := fmt.Sprintf("article:%d:view", id)
+		cache.Forget(key)
+	}
+}
+
 func (a *ArticleController) ViewArticle(ctx *gin.Context) {
 	request := &pb.UpdateArticleViewsRequest{}
 	if err := ctx.ShouldBind(request); err != nil {
@@ -387,9 +471,7 @@ func (a *ArticleController) ViewArticle(ctx *gin.Context) {
 
 	article, _ = dao.DB.Article.Query().Where(entArtic.ID(article.ID)).Select(entArtic.FieldViewCount).Only(ctx)
 
-	response.JSON(ctx, gin.H{
-		"likes": article.ViewCount,
-	})
+	response.JSON(ctx, pb.UpdateArticleViewsReply{Views: int32(article.ViewCount)})
 }
 
 func (a *ArticleController) ToggleCollectArticle(ctx *gin.Context) {

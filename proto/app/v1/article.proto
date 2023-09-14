@@ -185,3 +185,7 @@ message UpdateArticleViewsRequest {
 message UpdateArticleViewsReply {
   int32 views = 1;
 }
+
+message LikeArticleReply {
+  int32 likes = 1;
+}
